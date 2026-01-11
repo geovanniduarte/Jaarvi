@@ -140,6 +140,56 @@ Una vez validado el MVP, se incorporan capacidades de IA para **reducir fricció
 
 > Proporciona imágenes y/o videotutorial mostrando la experiencia del usuario desde que aterriza en la aplicación, pasando por todas las funcionalidades principales.
 
+#### **📱 Wireframes y Flujos de Usuario**
+
+Hemos diseñado wireframes detallados para todas las pantallas principales de la aplicación, mostrando la jerarquía de navegación y los patrones de interacción:
+
+**📄 Ver documento completo**: [`product-discovery/7-Wireframes.md`](product-discovery/7-Wireframes.md)
+
+**Diagrama de Navegación Completo**:
+
+El documento incluye un diagrama Mermaid interactivo que muestra el flujo de navegación entre todas las pantallas, con código de colores para distinguir:
+- 🔵 **Fase de Planificación** (azul): Creación de viajes, planificación de itinerarios
+- 🟠 **Fase de Ejecución** (naranja): Guía en tiempo real durante el viaje
+- 🟣 **Modales** (morado): Acciones rápidas (agregar/editar actividad, resolver problemas)
+- 🟢 **Navegación/Utilidades** (verde): Bóveda de documentos, modo navegación
+
+**Flujo Principal de Navegación**:
+
+```
+Trip List (Países/Trips) → Trip Detail (Ciudades) → City Itinerary (Días) → Day Activities → Activity Detail
+```
+
+**Pantallas Clave**:
+
+1. **Trip List**: Vista de todos los viajes organizados por país/región con indicadores de progreso
+2. **Trip Detail**: Lista de ciudades dentro de un viaje con estado de planificación por ciudad
+3. **City Itinerary**: Tabs horizontales para navegar entre días, mostrando actividades agrupadas por bloques de tiempo
+4. **Day Activities**: Vista editable con drag & drop para reordenar actividades
+5. **Activity Detail**: Información completa de la actividad con documentos adjuntos, tips locales y navegación
+6. **Activity Execution Pipeline**: Vista paso a paso para guiar al usuario durante la ejecución activa de una actividad
+7. **Activity Navigation Mode**: Navegación landmark-based con checkpoints visuales para wayfinding
+8. **Problem Resolution**: Modal contextual con soluciones para problemas comunes durante la ejecución
+9. **Today View**: Vista optimizada para ejecución en tiempo real con timeline y "siguiente acción"
+10. **Document Vault**: Almacén de documentos organizados por ciudad y vinculados a actividades específicas
+11. **Create Trip Flow**: Flujo de 3 pasos para crear un nuevo viaje (información básica, destinos, preferencias)
+
+**Características Destacadas del Diseño**:
+- ✅ **Jerarquía Clara**: Tres niveles (Trip → City → Day) que coinciden con el modelo mental del usuario
+- ✅ **Navegación Rápida**: Tabs horizontales para cambiar entre días sin perder contexto
+- ✅ **Información Inline**: Datos clave (tiempo, costo, ubicación) visibles sin necesidad de abrir detalles
+- ✅ **Validación en Tiempo Real**: Alertas de conflictos de tiempo y presupuesto inline
+- ✅ **Manual-First (MVP)**: Enfocado en creación y edición manual con UX clara para agregar/editar/reordenar
+- ✅ **Preparado para IA (Fase 2)**: La estructura soporta generación automática sin cambios de UX
+
+**Decisiones de Diseño**:
+- **Cards con contexto completo**: Reduce taps necesarios para ver información importante
+- **Drag & drop visual**: Manijas ☰ claramente identificables para reordenar actividades
+- **Modo "Today" separado**: Optimizado para el momento de ejecución del viaje
+- **Documentos vinculados**: Acceso contextual a tickets y reservaciones en el momento correcto
+
+> **🎨 Próximos pasos**: Prototipos interactivos, user testing, y sistema de diseño completo.
+
 ### **1.4. Instrucciones de instalación:**
 
 Esta guía te ayudará a configurar el entorno de desarrollo local de Jaarvi desde cero. Al finalizar, tendrás el backend funcionando y las aplicaciones móviles listas para desarrollo y pruebas.
