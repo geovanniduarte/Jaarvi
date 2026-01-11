@@ -128,16 +128,17 @@ This section expands the functions listed in [3) Main functions (functional scop
     - rationale per recommendation (“why”: time/cost/distance/convenience/local dynamics)
 
 - **Workflow**:
-  - User requests an initial itinerary (“generate plan”) OR starts from a blank plan (manual-first).
-  - AI agent compiles a draft itinerary by combining:
+  - User requests an initial itinerary ("generate plan" [PHASE 2]) OR starts from a blank plan (manual-first [MVP]).
+  - [PHASE 2 ONLY] AI agent compiles a draft itinerary by combining:
     - user preferences and constraints,
     - trip dates and destination sequencing,
     - tourism context inputs when available (e.g., flight prices/schedules, weather, opening hours),
     - local culture/dynamics guidance and high-impact playbooks for the destination.
-  - System produces a day-by-day plan (pipeline of days) with ordered activities plus “why” rationale.
+  - [PHASE 2 ONLY] System produces a day-by-day plan (pipeline of days) with ordered activities plus "why" rationale.
+  - [MVP] User manually builds itinerary day-by-day using CRUD operations (add/edit/delete/reorder activities).
   - System ensures each `DayPlan` includes all configured mandatory activity types (seed/config):
     - default status is `pending` until the user adds evidence (e.g., reservation document) or a note
-  - User reviews and edits:
+  - User reviews and edits (both MVP and Phase 2):
     - reorder activities,
     - swap/remove activities,
     - adjust time blocks and budgets,
@@ -145,10 +146,11 @@ This section expands the functions listed in [3) Main functions (functional scop
   - System continuously recalculates feasibility signals (time conflicts, unrealistic travel time, budget overflow) (TBD: exact rules).
 
 - **Possible outcomes**:
-  - **Success**: an AI-generated itinerary version is saved (with generation metadata) and marked “ready for execution”.
-  - **Editable fallback**: if suggestions are low quality or missing, the user can still craft a workable plan manually.
-  - **Partial**: itinerary generated with limited context (e.g., missing live prices/weather); system flags affected activities and invites manual adjustment.
-  - **Failure**: generation fails (no coverage/temporary error); user is offered manual planning or reduced-scope suggestions.
+  - **Success [PHASE 2]**: an AI-generated itinerary version is saved (with generation metadata) and marked "ready for execution".
+  - **Success [MVP]**: a manually-created itinerary is saved and ready for execution.
+  - **Editable fallback [BOTH]**: user can craft/adjust plan manually at any time.
+  - **Partial [PHASE 2]**: itinerary generated with limited context (e.g., missing live prices/weather); system flags affected activities and invites manual adjustment.
+  - **Failure [PHASE 2 ONLY]**: generation fails (no coverage/temporary error); user falls back to manual planning.
 
 ### C) On-site daily planning (start-of-day mode) (detailed)
 
@@ -235,6 +237,82 @@ This section expands the functions listed in [3) Main functions (functional scop
 
 - **Possible outcomes**:
   - **Success**: user reaches partner site; click is recorded.
-  - **Non-intrusive rule**: recommendations never block the user’s itinerary execution.
+  - **Non-intrusive rule**: recommendations never block the user's itinerary execution.
   - **Failure**: partner link fails; user is notified and can retry or use a fallback link.
+
+## 4) MVP Strategy and Phased Implementation
+
+### Overview
+Jaarvi follows a **manual-first, AI-later** approach to validate product-market fit before investing in complex AI infrastructure.
+
+### Phase 1: MVP - Manual Itinerary Creation (Months 1-3)
+
+#### Scope
+Focus on enabling travelers to **manually create, organize, and execute trips** with a delightful mobile experience.
+
+#### Core User Flows (MVP)
+1. **Trip Setup**: Create trip → Add destinations → Set basic preferences
+2. **Manual Itinerary Building**: 
+   - System creates empty day plans
+   - User adds activities one-by-one (title, location, time, cost)
+   - Drag-and-drop reordering
+   - Edit/delete activities
+3. **Document Management**: Upload documents → Link to activities → Quick access in "Today" view
+4. **Trip Execution**: View today's activities → Check off completed → Navigate via external maps
+
+#### Technical Stack (MVP)
+**Mobile**: 
+- Kotlin Multiplatform + Compose Multiplatform
+- SQLDelight for local persistence
+- Ktor for API calls
+
+**Backend**:
+- Node.js + TypeScript + Express
+- Domain Layer (Entities, Aggregates, Domain Services) ✅
+- Application Layer (CRUD Services: TripService, ItineraryService, ActivityService) ✅
+- Infrastructure Layer (Prisma + PostgreSQL + S3) ✅
+- **NOT INCLUDED**: AIOrchestrator, AI Service Client, Amazon Bedrock, SQS async processing
+
+**Infrastructure**:
+- AWS Lambda + API Gateway + RDS PostgreSQL + S3
+- **NOT INCLUDED**: Amazon Bedrock, SQS, advanced async processing
+
+#### Success Metrics (MVP)
+- Users can create a complete multi-day, multi-city trip in < 10 minutes
+- 80% of users successfully execute a trip using the app
+- Document vault used by 60%+ of active trips
+- Net Promoter Score (NPS) > 40
+
+### Phase 2: AI-Assisted Features (Months 4-6)
+
+#### New Capabilities
+- One-click itinerary generation using preferences + destination + days
+- AI suggestions for activities within a day
+- Automatic itinerary optimization (time, budget, routes)
+- Dynamic playbooks with local advice (powered by LLM)
+- Plan B generation when original plan fails
+
+#### Technical Additions
+**Backend**:
+- Implement AIOrchestrator (Application Layer)
+- Integrate Amazon Bedrock (Infrastructure Layer)
+- Add SQS for async job processing
+- Add AIGenerationLog for audit trail
+
+**Mobile**:
+- Add "Generate with AI" button in itinerary creation flow
+- Add "Suggest activities" option in day planning
+- Add AI confidence indicators in UI
+
+#### Migration Strategy
+- All existing manual itineraries remain functional
+- Users opt-in to AI features (not forced)
+- Hybrid mode: manually created itinerary + AI suggestions
+
+### Phase 3: Advanced Features (Months 7+)
+- Multi-user collaboration
+- Embedded maps (v2)
+- Full offline mode
+- Personalized recommendations from history
+- Partner integrations (booking, reservations)
 
