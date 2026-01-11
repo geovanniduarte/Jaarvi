@@ -1,0 +1,224 @@
+---
+description: Frontend development standards for Jaarvi (mobile-first) covering Compose Multiplatform, Kotlin Multiplatform shared architecture, UI/UX conventions, and testing practices
+globs: ["**/*.gradle.kts", "**/*.kts", "**/*.kt", "**/*.swift", "shared/**", "androidApp/**", "iosApp/**", "composeApp/**"]
+alwaysApply: true
+---
+
+# Frontend Project Configuration and Best Practices
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Technology Stack](#technology-stack)
+  - [Core Technologies](#core-technologies)
+  - [UI Framework](#ui-framework)
+  - [State Management & Data Flow](#state-management--data-flow)
+  - [Testing Framework](#testing-framework)
+  - [Development Tools](#development-tools)
+- [Project Structure](#project-structure)
+- [Coding Standards](#coding-standards)
+  - [Language and Naming Conventions](#language-and-naming-conventions)
+  - [Component Conventions](#component-conventions)
+  - [State Management](#state-management)
+  - [Service Layer Architecture](#service-layer-architecture)
+- [UI/UX Standards](#uiux-standards)
+  - [Design System](#design-system)
+  - [Form Handling](#form-handling)
+  - [Navigation Patterns](#navigation-patterns)
+  - [Accessibility](#accessibility)
+- [Testing Standards](#testing-standards)
+  - [Shared Tests (commonTest)](#shared-tests-commontest)
+  - [Android UI Tests](#android-ui-tests)
+  - [iOS UI Tests](#ios-ui-tests)
+- [Configuration Standards](#configuration-standards)
+  - [Gradle Configuration](#gradle-configuration)
+  - [Environment Configuration](#environment-configuration)
+- [Performance Best Practices](#performance-best-practices)
+  - [UI Performance](#ui-performance)
+  - [Data & Network Efficiency](#data--network-efficiency)
+- [Development Workflow](#development-workflow)
+- [Migration Strategy](#migration-strategy)
+
+---
+
+## Overview
+
+This document defines frontend standards for Jaarvi, a mobile travel assistant. The frontend is **mobile-first** and targets **Android and iOS from day one**, with a strong emphasis on fast time-to-market while keeping the architecture scalable.
+
+Key architectural decisions so far:
+- **Shared UI**: Compose Multiplatform (CMP) for cross-platform UI code.
+- **Shared core**: Kotlin Multiplatform (KMP) for domain, data, and platform-agnostic logic.
+- **V1 maps**: external navigation (Apple/Google Maps deep links) behind a capability abstraction.
+- **V2 maps**: embedded maps later with minimal refactor, by swapping platform implementations behind the same abstraction.
+
+## Technology Stack
+
+### Core Technologies
+- **Kotlin**: primary language for mobile and shared code.
+- **Kotlin Multiplatform (KMP)**: shared core (domain, data, shared utilities).
+- **Coroutines + Flow**: async and reactive state.
+
+### UI Framework
+- **Compose Multiplatform (CMP)**: shared UI screens and design system components for Android + iOS.
+- **Navigation**: Voyager (preferred for CMP) or equivalent CMP-friendly navigation library.
+
+### State Management & Data Flow
+- **State holder pattern**: shared “ViewModel-like” classes (e.g., `Presenter`/`ScreenModel`) in common code.
+  - Expose `StateFlow<UiState>` to the UI.
+  - Handle user actions via `onEvent(...)` style APIs.
+- **Avoid Android-only APIs in shared code**:
+  - `androidx.lifecycle.ViewModel` is **Android-only**. Shared UI state holders must not depend on it.
+
+### Testing Framework
+- **Shared tests**: `commonTest` for domain rules and shared state holders.
+- **Android UI tests**: Compose UI tests (`androidx.compose.ui:ui-test-junit4`) (Android-only).
+- **iOS UI tests**: XCUITest (iOS-only).
+
+### Development Tools
+- **Gradle**: Kotlin DSL.
+- **Static analysis / formatting**: TBD (sections below may be empty until decisions are made).
+
+## Project Structure
+
+The exact module layout is TBD, but the preferred high-level structure is:
+
+```
+.
+├── shared/                 # KMP shared core (domain/data/platform abstractions)
+├── shared-ui/              # CMP shared UI (screens/components/state holders)
+├── androidApp/             # Android entrypoint + Android platform implementations
+└── iosApp/                 # iOS entrypoint + iOS platform implementations
+```
+
+If the project uses the common CMP template, the UI module may be named `composeApp/` instead of `shared-ui/`. The important rule is: **shared UI must compile for iOS as well** and must not import Android-only dependencies.
+
+## Coding Standards
+
+### Language and Naming Conventions
+- **English only**: all code, comments, strings intended for logs/errors, and documentation must be in English.
+- **Naming**:
+  - Classes/Composables: PascalCase (`TodayScreen`, `ItineraryCard`)
+  - Functions/variables: camelCase (`loadItinerary`, `timeToLeave`)
+  - Constants: UPPER_SNAKE_CASE (`MAX_ITEMS`, `DEFAULT_TIMEOUT_MS`)
+  - Files: match the primary type (`TodayScreen.kt`, `ItineraryRepository.kt`)
+
+### Component Conventions
+- Prefer small composables:
+  - Extract repeated patterns into reusable components in the design system.
+  - Keep screens focused on composition and event wiring.
+- Keep UI platform-agnostic:
+  - Any OS integration should go through a capability abstraction (see below).
+
+### State Management
+- Each screen should have:
+  - `UiState` (immutable data class)
+  - `UiEvent` (user intents)
+  - `Presenter`/`ScreenModel`/`ViewModelLike` (handles events, exposes `StateFlow`)
+- Keep business rules out of composables:
+  - Domain logic belongs in the shared core (use cases/services).
+
+### Service Layer Architecture
+- Prefer layered architecture:
+  - **UI** → **Presenter** → **Use cases** → **Repositories** → **Network/DB**
+- Use capability interfaces for platform edges, e.g.:
+  - `MapCapability` (external navigation in v1, embedded maps later)
+  - `NotificationCapability`
+  - `BrowserCapability` (affiliate redirects)
+  - `DocumentVault` (storage and retrieval)
+
+## UI/UX Standards
+
+### Design System
+- Shared UI should implement a consistent design system:
+  - Typography, spacing, colors, elevation, iconography.
+  - Reusable “card” components for Today Mode, steps, and playbooks.
+- N/A: **Bootstrap / React Bootstrap** (this is not a web React app).
+
+### Form Handling
+- Prefer explicit state:
+  - Validate as the user types when needed.
+  - Disable primary actions during async operations.
+- TBD: form validation library decision (if any).
+
+### Navigation Patterns
+- Prefer a small number of top-level flows:
+  - Trip setup
+  - Itinerary planning/editing
+  - Today Mode execution
+  - Document vault access
+- Deep links:
+  - Support deep link entry into Today Mode or a specific activity (TBD).
+
+### Accessibility
+- Ensure interactive elements have stable semantics:
+  - Labels, roles, and meaningful content descriptions.
+  - Avoid relying on visual-only cues.
+- Add stable test identifiers where supported, to enable reliable platform UI tests.
+
+## Testing Standards
+
+### Shared Tests (commonTest)
+- Primary testing focus for time-to-market:
+  - Domain rules: itinerary generation, time calculations, constraints, Plan B selection.
+  - Presenter/state holder logic: event → state transitions.
+- Use test doubles for:
+  - Network (Ktor `MockEngine`)
+  - Persistence (SQLDelight in-memory driver)
+
+### Android UI Tests
+- Use Compose UI testing to validate:
+  - Key screens render expected state.
+  - Critical flows: Today Mode → open navigation → return.
+- N/A: **Cypress** (web E2E tool; this is a mobile app).
+
+### iOS UI Tests
+- Use XCUITest to validate:
+  - App startup and smoke navigation.
+  - A minimal set of critical user journeys.
+- Keep iOS UI tests smaller than shared tests to avoid duplicate coverage.
+
+## Configuration Standards
+
+### Gradle Configuration
+- Use Kotlin DSL (`build.gradle.kts`).
+- Keep dependency versions centralized (TBD: version catalog).
+- Avoid Android-only dependencies in shared modules.
+
+### Environment Configuration
+- TBD: environment strategy (dev/staging/prod) and secrets management.
+- N/A: **.env / Vite / CRA-style envs** (web tooling; not applicable).
+
+## Performance Best Practices
+
+### UI Performance
+- Prefer stable parameters and immutable state to reduce recompositions.
+- Avoid heavy work on the main thread:
+  - Use coroutines for IO and compute.
+- Use pagination or incremental loading for large itineraries (TBD).
+
+### Data & Network Efficiency
+- Cache network responses where appropriate (via repositories).
+- Prefer offline-friendly flows for itinerary and documents (future-friendly; exact offline scope TBD).
+
+## Development Workflow
+
+- **Solo workflow (current)**:
+  - One ticket per change.
+  - One git branch per ticket.
+  - One Pull Request per ticket, merged into `master`.
+- Keep changes small and incremental (baby steps).
+- Prefer shared tests (`commonTest`) for behavioral correctness, plus minimal platform smoke tests when needed.
+- Branch naming: `ticket-<id>-<short-description>` (example: `ticket-12-today-mode`).
+- PR expectations:
+  - Clear description of scope and acceptance criteria.
+  - Screenshots/GIFs when UI changes are introduced (TBD: exact format).
+  - All relevant tests passing for the touched layers (shared + platform as applicable).
+- N/A: **ESLint / TypeScript** (not applicable to Kotlin/CMP).
+
+## Migration Strategy
+
+- **Maps migration plan**:
+  - V1: external navigation via `MapCapability.openExternalNavigation(...)`.
+  - V2: embedded maps by adding platform implementations behind the same `MapCapability` API.
+- TBD: any future migration needs once the initial module structure is created.
+

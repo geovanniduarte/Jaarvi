@@ -1,0 +1,41 @@
+1) Draw.io xml Lean Canvas
+
+<mxGraphModel><root><mxCell id="0"/><mxCell id="1" parent="0"/><mxCell id="2" parent="1" style="shape=rectangle;html=1;fillColor=#F8CECC;align=center;fontStyle=1;fontSize=12;" value="Problema" vertex="1"><mxGeometry height="30" width="240" x="290" y="590" as="geometry"/></mxCell><mxCell id="3" parent="1" style="shape=rectangle;html=1;fillColor=#FFFFFF;fontSize=10;whiteSpace=wrap;spacingTop=4;spacingLeft=6;" value="- Alto esfuerzo e incertidumbre al planificar viajes&#10;- Errores costosos en destinos desconocidos&#10;- Falta de guía práctica en tiempo real&#10;- Documentos y reservas dispersos" vertex="1"><mxGeometry height="120" width="240" x="290" y="620" as="geometry"/></mxCell><mxCell id="4" parent="1" style="shape=rectangle;html=1;fillColor=#D5E8D4;align=center;fontStyle=1;fontSize=12;" value="Segmentos de Clientes" vertex="1"><mxGeometry height="30" width="240" x="530" y="590" as="geometry"/></mxCell><mxCell id="5" parent="1" style="shape=rectangle;html=1;fillColor=#FFFFFF;fontSize=10;whiteSpace=wrap;spacingTop=4;spacingLeft=6;" value="- Viajeros independientes&#10;- Viajeros a destinos desconocidos&#10;- Usuarios que buscan eficiencia y seguridad&#10;- Personas que desean todo el viaje en una sola app" vertex="1"><mxGeometry height="120" width="240" x="530" y="620" as="geometry"/></mxCell><mxCell id="6" parent="1" style="shape=rectangle;html=1;fillColor=#FFF2CC;align=center;fontStyle=1;fontSize=12;" value="Propuesta de Valor Única" vertex="1"><mxGeometry height="30" width="240" x="770" y="590" as="geometry"/></mxCell><mxCell id="7" parent="1" style="shape=rectangle;html=1;fillColor=#FFFFFF;fontSize=10;whiteSpace=wrap;spacingTop=4;spacingLeft=6;" value="- Planificación end-to-end con mínimo esfuerzo&#10;- Asistencia contextual durante el viaje&#10;- Guía como viajero local experto&#10;- Decisiones más seguras y eficientes" vertex="1"><mxGeometry height="120" width="240" x="770" y="620" as="geometry"/></mxCell><mxCell id="8" parent="1" style="shape=rectangle;html=1;fillColor=#E1D5E7;align=center;fontStyle=1;fontSize=12;" value="Ventaja Competitiva" vertex="1"><mxGeometry height="30" width="240" x="1010" y="590" as="geometry"/></mxCell><mxCell id="9" parent="1" style="shape=rectangle;html=1;fillColor=#FFFFFF;fontSize=10;whiteSpace=wrap;spacingTop=4;spacingLeft=6;" value="- Modelo de comportamiento de viajero experimentado de cada ciudad/sitio&lt;br&gt;- Itinerario como pipeline vivo de ejecución&lt;br&gt;- Micro-instrucciones operativas en tiempo real&lt;br&gt;- Monetización integrada alineada al valor del usuario" vertex="1"><mxGeometry height="420" width="240" x="1010" y="620" as="geometry"/></mxCell><mxCell id="10" parent="1" style="shape=rectangle;html=1;fillColor=#F8CECC;align=center;fontStyle=1;fontSize=12;" value="Solución" vertex="1"><mxGeometry height="30" width="240" x="290" y="740" as="geometry"/></mxCell><mxCell id="11" parent="1" style="shape=rectangle;html=1;fillColor=#FFFFFF;fontSize=10;whiteSpace=wrap;spacingTop=4;spacingLeft=6;" value="- Creación de viajes y preferencias&lt;br&gt;- Itinerarios multi-ciudad y día a día&lt;br&gt;- Ajustes editables de tiempo y coste&lt;br&gt;- Asistencia en destino y ejecución" vertex="1"><mxGeometry height="120" width="240" x="290" y="770" as="geometry"/></mxCell><mxCell id="12" parent="1" style="shape=rectangle;html=1;fillColor=#D5E8D4;align=center;fontStyle=1;fontSize=12;" value="Canales" vertex="1"><mxGeometry height="30" width="240" x="530" y="740" as="geometry"/></mxCell><mxCell id="13" parent="1" style="shape=rectangle;html=1;fillColor=#FFFFFF;fontSize=10;whiteSpace=wrap;spacingTop=4;spacingLeft=6;" value="- App móvil (iOS / Android)&#10;- Recomendaciones in-app contextuales&#10;- Redirecciones a partners afiliados" vertex="1"><mxGeometry height="120" width="240" x="530" y="770" as="geometry"/></mxCell><mxCell id="14" parent="1" style="shape=rectangle;html=1;fillColor=#DAE8FC;align=center;fontStyle=1;fontSize=12;" value="Fuentes de Ingresos" vertex="1"><mxGeometry height="30" width="240" x="770" y="740" as="geometry"/></mxCell><mxCell id="15" parent="1" style="shape=rectangle;html=1;fillColor=#FFFFFF;fontSize=10;whiteSpace=wrap;spacingTop=4;spacingLeft=6;" value="- Afiliación por reservas y tours&#10;- Redirecciones a servicios de transporte&#10;- Venta contextual de esenciales de viaje" vertex="1"><mxGeometry height="120" width="240" x="770" y="770" as="geometry"/></mxCell><mxCell id="16" parent="1" style="shape=rectangle;html=1;fillColor=#DAE8FC;align=center;fontStyle=1;fontSize=12;" value="Estructura de Costes" vertex="1"><mxGeometry height="30" width="480" x="290" y="890" as="geometry"/></mxCell><mxCell id="17" parent="1" style="shape=rectangle;html=1;fillColor=#FFFFFF;fontSize=10;whiteSpace=wrap;spacingTop=4;spacingLeft=6;" value="- Desarrollo y mantenimiento de la app&#10;- Infraestructura y mapas&#10;- Datos y contenidos locales&#10;- Costes de partnerships" vertex="1"><mxGeometry height="120" width="480" x="290" y="920" as="geometry"/></mxCell><mxCell id="18" parent="1" style="shape=rectangle;html=1;fillColor=#FFF2CC;align=center;fontStyle=1;fontSize=12;" value="Métricas Clave" vertex="1"><mxGeometry height="30" width="240" x="770" y="890" as="geometry"/></mxCell><mxCell id="19" parent="1" style="shape=rectangle;html=1;fillColor=#FFFFFF;fontSize=10;whiteSpace=wrap;spacingTop=4;spacingLeft=6;" value="- Viajes creados y completados&lt;br&gt;- Uso diario en destino&lt;br&gt;- Conversión afiliada&lt;br&gt;- Retención por viaje&lt;div&gt;- Compras hechas como afiliados.&lt;/div&gt;" vertex="1"><mxGeometry height="120" width="240" x="770" y="920" as="geometry"/></mxCell></root></mxGraphModel>
+
+  </root>
+</mxGraphModel>
+
+2) Mermaid Lean-canvas
+
+flowchart LR
+  %% Jaarvi Lean Canvas (layout inspired by jaarvi-lean-canvas.png)
+
+  P["<b>Problema</b><br/><br/>- Alto esfuerzo e incertidumbre al planificar viajes<br/>- Errores costosos en destinos desconocidos<br/>- Falta de guía practica en tiempo real<br/>- Documentos y reservas dispersos"]
+  SC["<b>Segmentos de Clientes</b><br/><br/>- Viajeros independientes<br/>- Viajeros a destinos desconocidos<br/>- Usuarios que buscan eficiencia y seguridad<br/>- Personas que desean todo el viaje en una sola app"]
+  PVU["<b>Propuesta de Valor Única</b><br/><br/>- Planificación end-to-end con mínimo esfuerzo<br/>- Asistencia contextual durante el viaje<br/>- Guía como viajero local experto<br/>- Decisiones más seguras y eficientes"]
+  VC["<b>Ventaja Competitiva</b><br/><br/>- Modelo de comportamiento de viajero experimentado de cada ciudad/sitio<br/>- Itinerario como pipeline vivo de ejecución<br/>- Micro-instrucciones operativas en tiempo real<br/>- Monetización integrada alineada al valor del usuario"]
+
+  SOL["<b>Solución</b><br/><br/>- Creación de viajes y preferencias<br/>- Itinerarios multi-ciudad y día a día<br/>- Ajustes editables de tiempo y coste<br/>- Asistencia en destino y ejecución"]
+  CAN["<b>Canales</b><br/><br/>- App móvil (iOS / Android)<br/>- Recomendaciones in-app contextuales<br/>- Redirecciones a partners afiliados"]
+  FI["<b>Fuentes de Ingresos</b><br/><br/>- Afiliación por reservas y tours<br/>- Redirecciones a servicios de transporte<br/>- Venta contextual de esenciales de viaje"]
+
+  EC["<b>Estructura de Costes</b><br/><br/>- Desarrollo y mantenimiento de la app<br/>- Infraestructura y mapas<br/>- Datos y contenidos locales<br/>- Costes de partnerships"]
+  MK["<b>Métricas Clave</b><br/><br/>- Viajes creados y completados<br/>- Uso diario en destino<br/>- Conversión afiliada<br/>- Retención por viaje<br/>- Compras hechas como afiliados."]
+
+  %% Invisible connectors to force a 4-column / 3-row-like layout
+  P --- SC --- PVU --- VC
+  SOL --- CAN --- FI --- VC
+  EC --- MK --- VC
+
+  %% Styling (approximate the colored headers from the image)
+  classDef red fill:#F8CECC,stroke:#B85450,color:#000;
+  classDef green fill:#D5E8D4,stroke:#82B366,color:#000;
+  classDef yellow fill:#FFF2CC,stroke:#D6B656,color:#000;
+  classDef purple fill:#E1D5E7,stroke:#9673A6,color:#000;
+  classDef blue fill:#DAE8FC,stroke:#6C8EBF,color:#000;
+
+  class P,SOL red;
+  class SC,CAN green;
+  class PVU,MK yellow;
+  class VC purple;
+  class FI,EC blue;
