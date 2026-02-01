@@ -42,7 +42,7 @@ Jaarvi is designed for travelers who want to:
 - **Cost and time awareness**: Show approximate time blocks and cost ranges per activity/day and help users adjust to fit constraints.
 - **Manual-first fallback**: Allow users to build and adjust the plan even when recommendations are not ideal, so the experience never blocks on “perfect AI”.
 
-### C) On-site daily planning (in-destination, “start-of-day” mode)
+### C) Daily planning (it may be in-destination, “start-of-day” mode or planned)
 - **Daily itinerary refresh**: At the start of the day, build or refine a realistic schedule based on location, opening hours, travel times, budget, and user preferences.
 - **Practical local advice**: Provide guidance based on local economic/cultural dynamics (e.g., whether to buy in advance vs on-site; negotiation tips; cash vs card considerations).
 - **Plan B alternatives**: Offer quick alternative options when the original plan is not viable (closures, weather, energy level, budget).
@@ -152,7 +152,7 @@ This section expands the functions listed in [3) Main functions (functional scop
   - **Partial [PHASE 2]**: itinerary generated with limited context (e.g., missing live prices/weather); system flags affected activities and invites manual adjustment.
   - **Failure [PHASE 2 ONLY]**: generation fails (no coverage/temporary error); user falls back to manual planning.
 
-### C) On-site daily planning (start-of-day mode) (detailed)
+### C) Daily planning (start-of-day mode) (detailed)
 
 - **Primary user(s)**:
   - Traveler (in destination)
@@ -248,7 +248,7 @@ Jaarvi follows a **manual-first, AI-later** approach to validate product-market 
 ### Phase 1: MVP - Manual Itinerary Creation (Months 1-3)
 
 #### Scope
-Focus on enabling travelers to **manually create, organize, and execute trips** with a delightful mobile experience.
+Focus on enabling travelers to **manually create, organize, and execute trips** with a delightful mobile experience.                
 
 #### Core User Flows (MVP)
 1. **Trip Setup**: Create trip → Add destinations → Set basic preferences

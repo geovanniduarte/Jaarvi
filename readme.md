@@ -20,7 +20,6 @@ Geovanni Duarte Guerrero
 ### **0.2. Nombre del proyecto:**
 
 Jaarvi
-
 ### **0.3. Descripción breve del proyecto:**
 
 App movil asistente de viajes
@@ -145,48 +144,6 @@ Una vez validado el MVP, se incorporan capacidades de IA para **reducir fricció
 Hemos diseñado wireframes detallados para todas las pantallas principales de la aplicación, mostrando la jerarquía de navegación y los patrones de interacción:
 
 **📄 Ver documento completo**: [`product-discovery/7-Wireframes.md`](product-discovery/7-Wireframes.md)
-
-**Diagrama de Navegación Completo**:
-
-El documento incluye un diagrama Mermaid interactivo que muestra el flujo de navegación entre todas las pantallas, con código de colores para distinguir:
-- 🔵 **Fase de Planificación** (azul): Creación de viajes, planificación de itinerarios
-- 🟠 **Fase de Ejecución** (naranja): Guía en tiempo real durante el viaje
-- 🟣 **Modales** (morado): Acciones rápidas (agregar/editar actividad, resolver problemas)
-- 🟢 **Navegación/Utilidades** (verde): Bóveda de documentos, modo navegación
-
-**Flujo Principal de Navegación**:
-
-```
-Trip List (Países/Trips) → Trip Detail (Ciudades) → City Itinerary (Días) → Day Activities → Activity Detail
-```
-
-**Pantallas Clave**:
-
-1. **Trip List**: Vista de todos los viajes organizados por país/región con indicadores de progreso
-2. **Trip Detail**: Lista de ciudades dentro de un viaje con estado de planificación por ciudad
-3. **City Itinerary**: Tabs horizontales para navegar entre días, mostrando actividades agrupadas por bloques de tiempo
-4. **Day Activities**: Vista editable con drag & drop para reordenar actividades
-5. **Activity Detail**: Información completa de la actividad con documentos adjuntos, tips locales y navegación
-6. **Activity Execution Pipeline**: Vista paso a paso para guiar al usuario durante la ejecución activa de una actividad
-7. **Activity Navigation Mode**: Navegación landmark-based con checkpoints visuales para wayfinding
-8. **Problem Resolution**: Modal contextual con soluciones para problemas comunes durante la ejecución
-9. **Today View**: Vista optimizada para ejecución en tiempo real con timeline y "siguiente acción"
-10. **Document Vault**: Almacén de documentos organizados por ciudad y vinculados a actividades específicas
-11. **Create Trip Flow**: Flujo de 3 pasos para crear un nuevo viaje (información básica, destinos, preferencias)
-
-**Características Destacadas del Diseño**:
-- ✅ **Jerarquía Clara**: Tres niveles (Trip → City → Day) que coinciden con el modelo mental del usuario
-- ✅ **Navegación Rápida**: Tabs horizontales para cambiar entre días sin perder contexto
-- ✅ **Información Inline**: Datos clave (tiempo, costo, ubicación) visibles sin necesidad de abrir detalles
-- ✅ **Validación en Tiempo Real**: Alertas de conflictos de tiempo y presupuesto inline
-- ✅ **Manual-First (MVP)**: Enfocado en creación y edición manual con UX clara para agregar/editar/reordenar
-- ✅ **Preparado para IA (Fase 2)**: La estructura soporta generación automática sin cambios de UX
-
-**Decisiones de Diseño**:
-- **Cards con contexto completo**: Reduce taps necesarios para ver información importante
-- **Drag & drop visual**: Manijas ☰ claramente identificables para reordenar actividades
-- **Modo "Today" separado**: Optimizado para el momento de ejecución del viaje
-- **Documentos vinculados**: Acceso contextual a tickets y reservaciones en el momento correcto
 
 > **🎨 Próximos pasos**: Prototipos interactivos, user testing, y sistema de diseño completo.
 
@@ -1767,49 +1724,14 @@ Estrategia de testing (MVP):
 
 Modelo propuesto (resumen): PostgreSQL + Prisma. Incluye usuarios y autenticación (email/contraseña + Google/Apple), viajes, itinerarios versionados, días por ciudad, actividades, documentos y auditoría de IA.
 
-```mermaid
-erDiagram
-  User ||--o| UserCredential : has
-  User ||--o{ OAuthAccount : links
-  User ||--o{ Session : has
-  User ||--o{ RefreshToken : has
-  User ||--o{ Trip : owns
-  User ||--o{ PreferenceSet : has
-
-  Trip ||--o{ TripDestination : includes
-  Trip ||--o{ TripPlanningContext : has
-  Trip ||--o{ ItineraryVersion : has
-  Trip ||--o{ Document : stores
-
-  Country ||--o{ City : contains
-  City ||--o{ TripDestination : selected_in
-
-  ItineraryVersion ||--o{ DayPlan : contains
-  ItineraryVersion ||--|| ItineraryGeneration : generated_by
-  DayPlan ||--o{ Activity : schedules
-
-  ActivityTypeConfig ||--o{ Activity : defines
-  Document ||--o{ DocumentLink : linked_to
-```
+**📊 Para ver el diagrama ERD completo en Mermaid y todos los detalles del modelo de datos, consulta:**  
+[**product-discovery/6-DataBase.md - Sección 2: ERD (Mermaid)**](product-discovery/6-DataBase.md#2-erd-mermaid)
 
 
 ### **3.2. Descripción de entidades principales:**
 
-- **User**: cuenta del viajero. Campos típicos: `id`, `email` (unique), `displayName`, `emailVerifiedAt`, `status`, `createdAt`, `updatedAt`.
-- **UserCredential**: credenciales para login con email/contraseña. Guarda `passwordHash` (nunca plaintext) y metadatos del algoritmo.
-- **OAuthAccount**: login social (Google/Apple). Unicidad por `(provider, providerAccountId)`; puede coexistir con `UserCredential`.
-- **Session / RefreshToken**: sesiones por dispositivo y refresh tokens hasheados con expiración/rotación/revocación.
-- **PreferenceSet**: preferencias y restricciones del usuario (JSONB) para planificación.
-- **Trip**: viaje (draft/active/completed) con fechas y owner.
-- **TripDestination**: ciudades incluidas en el viaje (por ciudad), con orden y cantidad de días.
-- **Country / City**: catálogo de países y ciudades; `City` referencia `Country`.
-- **ItineraryVersion**: versión del itinerario para un `Trip` (AI/manual/mixed) y estado (draft/ready/archived).
-- **DayPlan**: día del itinerario ejecutado en una **ciudad** (`cityId`) para una fecha.
-- **Activity**: actividades del día (transfer/visit/etc.). Soporta actividades “obligatorias” por configuración:
-  - campos: `activityTypeKey`, `isMandatory`, `readinessStatus`, `readinessNote`, `preparedAt`
-- **ActivityTypeConfig**: define tipos estables de actividad (seed en Prisma) y si un tipo es obligatorio por día (`isMandatoryDaily`). Ej.: `sleep` puede ser una fila seed, pero es configurable.
-- **Document / DocumentLink**: documentos (metadata + referencia a storage) y sus links a trip/day/activity.
-- **TripPlanningContext / ItineraryGeneration**: auditabilidad IA (snapshots de inputs/contexto, rationale, confidence, citations).
+**📋 Para ver la especificación completa de todas las tablas con campos, tipos, índices y restricciones, consulta:**  
+[**product-discovery/6-DataBase.md - Sección 3: Especificación de tablas (Prisma-friendly)**](product-discovery/6-DataBase.md#3-especificación-de-tablas-prisma-friendly)
 
 ---
 
@@ -1825,9 +1747,15 @@ erDiagram
 
 **Historia de Usuario 1**
 
+[CREATE TRIP](/ai-specs/changes/mvp-03-create-trip-with-destinations.md)
+
 **Historia de Usuario 2**
 
+[MANAGE TRIP](/ai-specs/changes/mvp-04-manage-trip-lifecycle.md)
+
 **Historia de Usuario 3**
+
+[BUILD MANUAL ITINERARY](/ai-specs/changes/mvp-05-build-manual-itinerary.md)
 
 ---
 

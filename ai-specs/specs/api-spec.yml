@@ -1,110 +1,84 @@
 openapi: 3.0.0
 info:
-  title: LTI (Learning Technology Initiative) API
+  title: Jaarvi Travel Assistant API
   description: |
-    REST API for the Learning Technology Initiative platform, designed for managing candidates, positions, interviews, and recruitment processes.
+    REST API for Jaarvi, a mobile travel assistant that helps travelers plan and execute trips with real-time guidance.
     
-    This API follows Domain-Driven Design principles and implements a layered architecture for scalable recruitment management.
+    This API follows Domain-Driven Design principles and implements a layered architecture for scalable travel management.
     
     ## Features
-    - Candidate management with education and work experience tracking
-    - Position management with company and interview flow integration
-    - Application tracking through interview processes
-    - File upload capabilities for resumes and documents
-    - Comprehensive filtering, sorting, and pagination support
+    - User authentication with email/password and OAuth (Google, Apple)
+    - Trip creation and management with multiple destinations
+    - Manual itinerary building with day-by-day activities
+    - Document vault for travel documents (tickets, reservations, permits)
+    - Today view for real-time trip execution
+    - Destination coverage information
     
-  version: 0.0.0.001
+    ## MVP Phase 1 (Current)
+    - Manual itinerary creation and editing
+    - Document management
+    - Basic trip planning features
+    
+    ## Phase 2 (Future)
+    - AI-powered itinerary generation
+    - Smart recommendations and playbooks
+    - Plan B alternative suggestions
+    
+  version: 1.0.0
   contact:
-    name: LTI Development Team
+    name: Jaarvi Development Team
   license:
     name: ISC
     
 servers:
   - url: http://localhost:3000
     description: Development server
-  - url: https://api.lti.dev
+  - url: https://api-dev.jaarvi.app
+    description: Development environment
+  - url: https://api-staging.jaarvi.app
+    description: Staging environment
+  - url: https://api.jaarvi.app
     description: Production server
 
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Trips
+    description: Trip creation and management
+  - name: Destinations
+    description: Destination information and coverage
+  - name: Itinerary
+    description: Itinerary and day plan management
+  - name: Activities
+    description: Activity CRUD operations and execution
+  - name: Documents
+    description: Document vault management
+  - name: AI (Phase 2)
+    description: AI-powered features (Phase 2 only)
+
 paths:
-  /candidates:
-    get:
-      summary: Get all candidates
-      description: Retrieve a paginated list of candidates with optional filtering and sorting capabilities
-      tags:
-        - Candidates
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-          description: Page number for pagination
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 10
-          description: Number of candidates per page
-        - in: query
-          name: search
-          schema:
-            type: string
-          description: Search term to filter candidates by first name, last name, or email
-        - in: query
-          name: sort
-          schema:
-            type: string
-            enum: [firstName, lastName, email]
-            default: firstName
-          description: Field to sort candidates by
-        - in: query
-          name: order
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          description: Sort order
-      responses:
-        '200':
-          description: Successfully retrieved candidates
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CandidateListResponse'
-        '400':
-          description: Invalid request parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    
+  # ========================================
+  # Authentication Endpoints
+  # ========================================
+  /api/auth/register:
     post:
-      summary: Create a new candidate
-      description: Add a new candidate to the system with their personal information, education, and work experience
+      summary: Register new user
+      description: Create a new user account with email and password
       tags:
-        - Candidates
+        - Authentication
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCandidateRequest'
+              $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: Candidate created successfully
+          description: User created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateCandidateResponse'
+                $ref: '#/components/schemas/AuthResponse'
         '400':
           description: Validation error or email already exists
           content:
@@ -118,34 +92,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /candidates/{id}:
-    get:
-      summary: Get candidate by ID
-      description: Retrieve detailed information about a specific candidate including their applications, interviews, and related data
+  /api/auth/login:
+    post:
+      summary: Login user
+      description: Authenticate user with email and password
       tags:
-        - Candidates
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: Candidate ID
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Successfully retrieved candidate
+          description: Login successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CandidateDetails'
-        '400':
-          description: Invalid ID format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Candidate not found
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
           content:
             application/json:
               schema:
@@ -156,32 +123,282 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    
-    put:
-      summary: Update candidate interview stage
-      description: Update the current interview stage for a candidate's application
+
+  /api/auth/refresh:
+    post:
+      summary: Refresh access token
+      description: Get new access token using refresh token
       tags:
-        - Candidates
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: Candidate ID
+        - Authentication
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateCandidateStageRequest'
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: Refresh token received at login
+              required:
+                - refreshToken
       responses:
         '200':
-          description: Candidate stage updated successfully
+          description: Token refreshed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateCandidateStageResponse'
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/logout:
+    post:
+      summary: Logout user
+      description: Invalidate current session and refresh token
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logout successful
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/me:
+    get:
+      summary: Get current user
+      description: Retrieve information about the authenticated user
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/oauth/google:
+    post:
+      summary: Google OAuth login
+      description: Authenticate user with Google OAuth authorization code
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Authorization code from Google OAuth
+              required:
+                - code
+      responses:
+        '200':
+          description: OAuth login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid authorization code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/oauth/apple:
+    post:
+      summary: Apple Sign-In
+      description: Authenticate user with Apple Sign-In authorization code
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Authorization code from Apple Sign-In
+              required:
+                - code
+      responses:
+        '200':
+          description: OAuth login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid authorization code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # Trip Management Endpoints
+  # ========================================
+  /api/trips:
+    get:
+      summary: Get all trips
+      description: Retrieve all trips for the authenticated user
+      tags:
+        - Trips
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, active, completed]
+          description: Filter trips by status
+      responses:
+        '200':
+          description: Trips retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trip'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Create new trip
+      description: Create a new trip with basic information
+      tags:
+        - Trips
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTripRequest'
+      responses:
+        '201':
+          description: Trip created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/trips/{id}:
+    get:
+      summary: Get trip by ID
+      description: Retrieve detailed information about a specific trip
+      tags:
+        - Trips
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Trip ID
+      responses:
+        '200':
+          description: Trip retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripDetail'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update trip
+      description: Update trip basic information
+      tags:
+        - Trips
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Trip ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTripRequest'
+      responses:
+        '200':
+          description: Trip updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
         '400':
           description: Validation error
           content:
@@ -189,222 +406,680 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Application not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
+          description: Trip not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /positions:
-    get:
-      summary: Get all positions
-      description: Retrieve all visible positions in the system
+    delete:
+      summary: Delete trip
+      description: Delete a trip and all associated data
       tags:
-        - Positions
-      responses:
-        '200':
-          description: Successfully retrieved positions
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Position'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /positions/{id}:
-    get:
-      summary: Get position by ID
-      description: Retrieve detailed information about a specific position
-      tags:
-        - Positions
+        - Trips
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: integer
-          description: Position ID
+            type: string
+            format: uuid
+          description: Trip ID
       responses:
-        '200':
-          description: Successfully retrieved position
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Position'
-        '400':
-          description: Invalid position ID format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+        '204':
+          description: Trip deleted successfully
         '404':
-          description: Position not found
+          description: Trip not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    
-    put:
-      summary: Update position
-      description: |
-        Update an existing position with new information. Supports partial updates - only fields provided in the request body will be updated.
-        Fields not provided will maintain their existing values in the database.
+
+  /api/trips/{id}/destinations:
+    post:
+      summary: Add destination to trip
+      description: Add a new destination (city) to the trip
       tags:
-        - Positions
+        - Trips
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: integer
-          description: Position ID
+            type: string
+            format: uuid
+          description: Trip ID
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePositionRequest'
+              $ref: '#/components/schemas/AddDestinationRequest'
       responses:
-        '200':
-          description: Position updated successfully
+        '201':
+          description: Destination added successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdatePositionResponse'
+                $ref: '#/components/schemas/TripDestination'
         '400':
-          description: Validation error or invalid reference data
+          description: Validation error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Position not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
+          description: Trip or city not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /positions/{id}/candidates:
-    get:
-      summary: Get candidates by position
-      description: Retrieve all candidates who have applied to a specific position with their interview progress
+  /api/trips/{id}/destinations/{destinationId}:
+    put:
+      summary: Update destination
+      description: Update destination details (dates, order)
       tags:
-        - Positions
+        - Trips
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: integer
-          description: Position ID
-      responses:
-        '200':
-          description: Successfully retrieved candidates for position
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PositionCandidate'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /positions/{id}/candidates/names:
-    get:
-      summary: Get candidate names by position
-      description: Retrieve simplified candidate information (ID and name only) for a specific position
-      tags:
-        - Positions
-      parameters:
+            type: string
+            format: uuid
+          description: Trip ID
         - in: path
-          name: id
+          name: destinationId
           required: true
           schema:
-            type: integer
-          description: Position ID
+            type: string
+            format: uuid
+          description: Destination ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDestinationRequest'
       responses:
         '200':
-          description: Successfully retrieved candidate names
+          description: Destination updated successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CandidateName'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /positions/{id}/interviewflow:
-    get:
-      summary: Get interview flow by position
-      description: Retrieve the interview flow configuration for a specific position
-      tags:
-        - Positions
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: Position ID
-      responses:
-        '200':
-          description: Successfully retrieved interview flow
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InterviewFlowResponse'
+                $ref: '#/components/schemas/TripDestination'
         '404':
-          description: Position not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Server error
+          description: Trip or destination not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /upload:
+    delete:
+      summary: Remove destination from trip
+      description: Remove a destination and all associated itinerary data
+      tags:
+        - Trips
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Trip ID
+        - in: path
+          name: destinationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Destination ID
+      responses:
+        '204':
+          description: Destination removed successfully
+        '404':
+          description: Trip or destination not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # Destination & Coverage Endpoints
+  # ========================================
+  /api/destinations/countries:
+    get:
+      summary: Get all countries
+      description: Retrieve list of available countries
+      tags:
+        - Destinations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Countries retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+
+  /api/destinations/cities:
+    get:
+      summary: Get cities
+      description: Retrieve list of cities, optionally filtered by country
+      tags:
+        - Destinations
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: countryId
+          schema:
+            type: string
+            format: uuid
+          description: Filter cities by country ID
+      responses:
+        '200':
+          description: Cities retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+
+  /api/destinations/cities/{id}/coverage:
+    get:
+      summary: Get city coverage
+      description: Retrieve coverage level and playbook availability for a city
+      tags:
+        - Destinations
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: City ID
+      responses:
+        '200':
+          description: Coverage information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CityCoverage'
+        '404':
+          description: City not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # Itinerary Management Endpoints
+  # ========================================
+  /api/trips/{id}/itinerary:
+    get:
+      summary: Get trip itinerary
+      description: Retrieve complete itinerary for a trip with all days and activities
+      tags:
+        - Itinerary
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Trip ID
+      responses:
+        '200':
+          description: Itinerary retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/trips/{id}/itinerary/days:
     post:
-      summary: Upload file
-      description: Upload a file (PDF or DOCX) for resume or document storage
+      summary: Create day plan
+      description: Create a new day plan in the itinerary
       tags:
-        - File Upload
+        - Itinerary
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Trip ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDayPlanRequest'
+      responses:
+        '201':
+          description: Day plan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DayPlan'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/itinerary/days/{dayId}:
+    get:
+      summary: Get day plan
+      description: Retrieve a specific day plan with all activities
+      tags:
+        - Itinerary
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: dayId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Day plan ID
+      responses:
+        '200':
+          description: Day plan retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DayPlan'
+        '404':
+          description: Day plan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update day plan
+      description: Update day plan information
+      tags:
+        - Itinerary
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: dayId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Day plan ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDayPlanRequest'
+      responses:
+        '200':
+          description: Day plan updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DayPlan'
+        '404':
+          description: Day plan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete day plan
+      description: Delete a day plan and all its activities
+      tags:
+        - Itinerary
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: dayId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Day plan ID
+      responses:
+        '204':
+          description: Day plan deleted successfully
+        '404':
+          description: Day plan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # Activity Management Endpoints
+  # ========================================
+  /api/itinerary/days/{dayId}/activities:
+    post:
+      summary: Create activity
+      description: Add a new activity to a day plan
+      tags:
+        - Activities
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: dayId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Day plan ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateActivityRequest'
+      responses:
+        '201':
+          description: Activity created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/activities/{id}:
+    get:
+      summary: Get activity
+      description: Retrieve detailed information about an activity
+      tags:
+        - Activities
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Activity ID
+      responses:
+        '200':
+          description: Activity retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityDetail'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update activity
+      description: Update activity information
+      tags:
+        - Activities
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Activity ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateActivityRequest'
+      responses:
+        '200':
+          description: Activity updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete activity
+      description: Delete an activity from the itinerary
+      tags:
+        - Activities
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Activity ID
+      responses:
+        '204':
+          description: Activity deleted successfully
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/activities/{id}/reorder:
+    patch:
+      summary: Reorder activity
+      description: Change the order of an activity within a day
+      tags:
+        - Activities
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Activity ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newSortOrder:
+                  type: integer
+                  minimum: 0
+                  description: New position in the activity list
+              required:
+                - newSortOrder
+      responses:
+        '200':
+          description: Activity reordered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '400':
+          description: Invalid sort order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/activities/{id}/complete:
+    post:
+      summary: Mark activity as complete
+      description: Mark an activity as completed during trip execution
+      tags:
+        - Activities
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Activity ID
+      responses:
+        '200':
+          description: Activity marked as complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityProgress'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/activities/{id}/skip:
+    post:
+      summary: Skip activity
+      description: Mark an activity as skipped during trip execution
+      tags:
+        - Activities
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Activity ID
+      responses:
+        '200':
+          description: Activity marked as skipped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityProgress'
+        '404':
+          description: Activity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # Document Vault Endpoints
+  # ========================================
+  /api/documents:
+    get:
+      summary: Get all documents
+      description: Retrieve all documents for the authenticated user
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: tripId
+          schema:
+            type: string
+            format: uuid
+          description: Filter documents by trip ID
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [ticket, reservation, permit, passport, other]
+          description: Filter documents by type
+      responses:
+        '200':
+          description: Documents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+
+    post:
+      summary: Upload document
+      description: Upload a new travel document
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -415,663 +1090,825 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: File to upload (PDF or DOCX, max 10MB)
+                  description: Document file (PDF, JPEG, PNG)
+                tripId:
+                  type: string
+                  format: uuid
+                  description: Trip ID to associate document with
+                type:
+                  type: string
+                  enum: [ticket, reservation, permit, passport, other]
+                  description: Document type
+                title:
+                  type: string
+                  description: Document title
+                metadata:
+                  type: string
+                  description: Additional metadata as JSON string
               required:
                 - file
+                - tripId
+                - type
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          description: Validation error or file too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/documents/{id}:
+    get:
+      summary: Get document
+      description: Retrieve document metadata and download URL
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Document ID
       responses:
         '200':
-          description: File uploaded successfully
+          description: Document retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FileUploadResponse'
-        '400':
-          description: Invalid file type or file too large
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Upload error
+                $ref: '#/components/schemas/DocumentDetail'
+        '404':
+          description: Document not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+    delete:
+      summary: Delete document
+      description: Delete a document and its file from storage
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Document ID
+      responses:
+        '204':
+          description: Document deleted successfully
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/documents/{id}/link:
+    post:
+      summary: Link document to activity
+      description: Create a link between a document and an activity or day plan
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Document ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                activityId:
+                  type: string
+                  format: uuid
+                  description: Activity ID to link (optional)
+                dayPlanId:
+                  type: string
+                  format: uuid
+                  description: Day plan ID to link (optional)
+      responses:
+        '201':
+          description: Document linked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentLink'
+        '404':
+          description: Document, activity, or day plan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # Phase 2: AI-Powered Endpoints (Future)
+  # ========================================
+  /api/itinerary/generate:
+    post:
+      summary: Generate itinerary with AI (Phase 2)
+      description: |
+        AI-powered itinerary generation based on trip preferences.
+        **Status**: Phase 2 only - Not available in MVP
+      tags:
+        - AI (Phase 2)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tripId:
+                  type: string
+                  format: uuid
+                preferences:
+                  type: object
+                  description: User preferences and constraints
+      responses:
+        '201':
+          description: Itinerary generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+        '501':
+          description: Feature not implemented in MVP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: AI-powered generation available in Phase 2
+
+  /api/itinerary/refresh:
+    post:
+      summary: Refresh daily itinerary (Phase 2)
+      description: |
+        AI-powered start-of-day itinerary refresh with contextual recommendations.
+        **Status**: Phase 2 only - Not available in MVP
+      tags:
+        - AI (Phase 2)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dayPlanId:
+                  type: string
+                  format: uuid
+                context:
+                  type: object
+                  description: Current context (location, weather, time)
+      responses:
+        '200':
+          description: Itinerary refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DayPlan'
+        '501':
+          description: Feature not implemented in MVP
+
+  /api/playbooks/{cityId}:
+    get:
+      summary: Get city playbooks (Phase 2)
+      description: |
+        Retrieve AI-powered contextual advice and playbooks for a city.
+        **Status**: Phase 2 only - Not available in MVP
+      tags:
+        - AI (Phase 2)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: cityId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Playbooks retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '501':
+          description: Feature not implemented in MVP
+
+  /api/activities/{id}/plan-b:
+    get:
+      summary: Get Plan B alternatives (Phase 2)
+      description: |
+        Get alternative activity suggestions when original plan fails.
+        **Status**: Phase 2 only - Not available in MVP
+      tags:
+        - AI (Phase 2)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Alternatives retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
+        '501':
+          description: Feature not implemented in MVP
+
+# ========================================
+# Component Schemas
+# ========================================
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
-    CandidateListResponse:
+    # Authentication Schemas
+    RegisterRequest:
       type: object
       properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Candidate'
-        metadata:
-          $ref: '#/components/schemas/PaginationMetadata'
-      required:
-        - data
-        - metadata
-
-    Candidate:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Unique candidate identifier
-        firstName:
-          type: string
-          description: Candidate's first name
-        lastName:
-          type: string
-          description: Candidate's last name
         email:
           type: string
           format: email
-          description: Candidate's email address
-        phone:
+          description: User email address
+        password:
           type: string
-          nullable: true
-          description: Candidate's phone number
-        address:
+          minLength: 8
+          description: User password (min 8 characters)
+        displayName:
           type: string
-          nullable: true
-          description: Candidate's address
-        educations:
-          type: array
-          items:
-            $ref: '#/components/schemas/Education'
-        workExperiences:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkExperience'
-        resumes:
-          type: array
-          items:
-            $ref: '#/components/schemas/Resume'
-        applications:
-          type: array
-          items:
-            $ref: '#/components/schemas/Application'
+          description: User display name
       required:
-        - firstName
-        - lastName
         - email
+        - password
+        - displayName
 
-    CandidateDetails:
-      allOf:
-        - $ref: '#/components/schemas/Candidate'
-        - type: object
-          properties:
-            applications:
-              type: array
-              items:
-                allOf:
-                  - $ref: '#/components/schemas/Application'
-                  - type: object
-                    properties:
-                      position:
-                        type: object
-                        properties:
-                          id:
-                            type: integer
-                          title:
-                            type: string
-                      interviews:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Interview'
-
-    CreateCandidateRequest:
+    LoginRequest:
       type: object
       properties:
-        firstName:
-          type: string
-          description: Candidate's first name
-        lastName:
-          type: string
-          description: Candidate's last name
         email:
           type: string
           format: email
-          description: Candidate's email address
-        phone:
+        password:
           type: string
-          nullable: true
-          description: Candidate's phone number
-        address:
-          type: string
-          nullable: true
-          description: Candidate's address
-        educations:
-          type: array
-          items:
-            $ref: '#/components/schemas/CreateEducationRequest'
-        workExperiences:
-          type: array
-          items:
-            $ref: '#/components/schemas/CreateWorkExperienceRequest'
-        cv:
-          $ref: '#/components/schemas/CreateResumeRequest'
       required:
-        - firstName
-        - lastName
         - email
+        - password
 
-    CreateCandidateResponse:
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        accessToken:
+          type: string
+          description: JWT access token (expires in 15 minutes)
+        refreshToken:
+          type: string
+          description: JWT refresh token (expires in 7 days)
+      required:
+        - user
+        - accessToken
+        - refreshToken
+
+    User:
       type: object
       properties:
         id:
-          type: integer
-          description: Created candidate ID
-        firstName:
           type: string
-        lastName:
-          type: string
+          format: uuid
         email:
           type: string
-        phone:
+          format: email
+        displayName:
           type: string
-          nullable: true
-        address:
-          type: string
-          nullable: true
-      required:
-        - id
-        - firstName
-        - lastName
-        - email
-
-    UpdateCandidateStageRequest:
-      type: object
-      properties:
-        applicationId:
-          type: string
-          description: Application ID (will be converted to integer)
-        currentInterviewStep:
-          type: string
-          description: Current interview step (will be converted to integer)
-      required:
-        - applicationId
-        - currentInterviewStep
-
-    UpdateCandidateStageResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          example: "Candidate stage updated successfully"
-        data:
-          $ref: '#/components/schemas/Application'
-
-    Position:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Position unique identifier
-        companyId:
-          type: integer
-          description: Associated company ID
-        interviewFlowId:
-          type: integer
-          description: Associated interview flow ID
-        title:
-          type: string
-          description: Position title
-        description:
-          type: string
-          description: Position description
-        status:
-          type: string
-          description: Position status
-          default: "Draft"
-        isVisible:
-          type: boolean
-          description: Whether position is visible to candidates
-          default: false
-        location:
-          type: string
-          description: Position location
-        jobDescription:
-          type: string
-          description: Detailed job description
-        requirements:
-          type: string
-          nullable: true
-          description: Position requirements
-        responsibilities:
-          type: string
-          nullable: true
-          description: Position responsibilities
-        salaryMin:
-          type: number
-          nullable: true
-          description: Minimum salary
-        salaryMax:
-          type: number
-          nullable: true
-          description: Maximum salary
-        employmentType:
-          type: string
-          nullable: true
-          description: Type of employment
-        benefits:
-          type: string
-          nullable: true
-          description: Position benefits
-        companyDescription:
-          type: string
-          nullable: true
-          description: Company description
-        applicationDeadline:
+        emailVerifiedAt:
           type: string
           format: date-time
           nullable: true
-          description: Application deadline
-        contactInfo:
-          type: string
-          nullable: true
-          description: Contact information
-      required:
-        - companyId
-        - interviewFlowId
-        - title
-        - description
-        - location
-        - jobDescription
-
-    UpdatePositionRequest:
-      type: object
-      properties:
-        companyId:
-          type: integer
-          minimum: 1
-          description: Associated company ID (must be a positive integer)
-        interviewFlowId:
-          type: integer
-          minimum: 1
-          description: Associated interview flow ID (must be a positive integer)
-        title:
-          type: string
-          maxLength: 100
-          minLength: 1
-          description: Position title (required, 1-100 characters)
-        description:
-          type: string
-          minLength: 1
-          description: Position description (required, cannot be empty)
         status:
           type: string
-          enum: [Open, Contratado, Cerrado, Borrador]
-          description: Position status (must be one of the valid status values)
-        isVisible:
-          type: boolean
-          description: Whether position is visible to candidates
-        location:
-          type: string
-          minLength: 1
-          description: Position location (required, cannot be empty)
-        jobDescription:
-          type: string
-          minLength: 1
-          description: Detailed job description (required, cannot be empty)
-        requirements:
-          type: string
-          nullable: true
-          description: Position requirements
-        responsibilities:
-          type: string
-          nullable: true
-          description: Position responsibilities
-        salaryMin:
-          type: number
-          minimum: 0
-          nullable: true
-          description: Minimum salary (must be >= 0, cannot be greater than salaryMax)
-        salaryMax:
-          type: number
-          minimum: 0
-          nullable: true
-          description: Maximum salary (must be >= 0, cannot be less than salaryMin)
-        employmentType:
-          type: string
-          nullable: true
-          description: Type of employment
-        benefits:
-          type: string
-          nullable: true
-          description: Position benefits
-        companyDescription:
-          type: string
-          nullable: true
-          description: Company description
-        applicationDeadline:
+          enum: [active, disabled]
+        createdAt:
           type: string
           format: date-time
-          nullable: true
-          description: Application deadline (must be a future date)
-        contactInfo:
+        updatedAt:
           type: string
-          nullable: true
-          description: Contact information
+          format: date-time
 
-    UpdatePositionResponse:
+    # Trip Schemas
+    CreateTripRequest:
       type: object
       properties:
-        message:
-          type: string
-          example: "Position updated successfully"
-        data:
-          $ref: '#/components/schemas/Position'
-
-    PositionCandidate:
-      type: object
-      properties:
-        fullName:
-          type: string
-          description: Candidate's full name
-        currentInterviewStep:
-          type: string
-          description: Current interview step name
-        candidateId:
-          type: integer
-          description: Candidate ID
-        applicationId:
-          type: integer
-          description: Application ID
-        averageScore:
-          type: number
-          description: Average interview score
-      required:
-        - fullName
-        - currentInterviewStep
-        - candidateId
-        - applicationId
-        - averageScore
-
-    CandidateName:
-      type: object
-      properties:
-        candidateId:
-          type: integer
-          description: Candidate ID
-        fullName:
-          type: string
-          description: Candidate's full name
-      required:
-        - candidateId
-        - fullName
-
-    InterviewFlowResponse:
-      type: object
-      properties:
-        interviewFlow:
-          type: object
-          properties:
-            positionName:
-              type: string
-              description: Position title
-            interviewFlow:
-              $ref: '#/components/schemas/InterviewFlow'
-
-    InterviewFlow:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Interview flow ID
-        description:
-          type: string
-          description: Interview flow description
-        interviewSteps:
-          type: array
-          items:
-            $ref: '#/components/schemas/InterviewStep'
-
-    InterviewStep:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Interview step ID
-        interviewFlowId:
-          type: integer
-          description: Associated interview flow ID
-        interviewTypeId:
-          type: integer
-          description: Associated interview type ID
         name:
           type: string
-          description: Interview step name
-        orderIndex:
-          type: integer
-          description: Step order in the interview flow
+          description: Trip name
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+      required:
+        - startDate
+        - endDate
 
-    Education:
+    UpdateTripRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [draft, active, completed]
+
+    Trip:
       type: object
       properties:
         id:
-          type: integer
-          description: Education record ID
-        candidateId:
-          type: integer
-          description: Associated candidate ID
-        institution:
           type: string
-          description: Educational institution name
-        title:
+          format: uuid
+        ownerId:
           type: string
-          description: Degree or certification title
+          format: uuid
+        name:
+          type: string
+          nullable: true
         startDate:
           type: string
           format: date-time
-          description: Education start date
         endDate:
           type: string
           format: date-time
-          nullable: true
-          description: Education end date
-      required:
-        - institution
-        - title
-        - startDate
+        status:
+          type: string
+          enum: [draft, active, completed]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
-    CreateEducationRequest:
-      type: object
-      properties:
-        institution:
-          type: string
-          description: Educational institution name
-        title:
-          type: string
-          description: Degree or certification title
-        startDate:
-          type: string
-          format: date-time
-          description: Education start date
-        endDate:
-          type: string
-          format: date-time
-          nullable: true
-          description: Education end date
-      required:
-        - institution
-        - title
-        - startDate
-
-    WorkExperience:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Work experience record ID
-        candidateId:
-          type: integer
-          description: Associated candidate ID
-        company:
-          type: string
-          description: Company name
-        position:
-          type: string
-          description: Job position title
-        description:
-          type: string
-          nullable: true
-          description: Job description
-        startDate:
-          type: string
-          format: date-time
-          description: Employment start date
-        endDate:
-          type: string
-          format: date-time
-          nullable: true
-          description: Employment end date
-      required:
-        - company
-        - position
-        - startDate
-
-    CreateWorkExperienceRequest:
-      type: object
-      properties:
-        company:
-          type: string
-          description: Company name
-        position:
-          type: string
-          description: Job position title
-        description:
-          type: string
-          nullable: true
-          description: Job description
-        startDate:
-          type: string
-          format: date-time
-          description: Employment start date
-        endDate:
-          type: string
-          format: date-time
-          nullable: true
-          description: Employment end date
-      required:
-        - company
-        - position
-        - startDate
-
-    Resume:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Resume record ID
-        candidateId:
-          type: integer
-          description: Associated candidate ID
-        filePath:
-          type: string
-          description: Resume file path
-        fileType:
-          type: string
-          description: Resume file MIME type
-      required:
-        - filePath
-        - fileType
-
-    CreateResumeRequest:
-      type: object
-      properties:
-        filePath:
-          type: string
-          description: Resume file path
-        fileType:
-          type: string
-          description: Resume file MIME type
-      required:
-        - filePath
-        - fileType
-
-    Application:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: Application ID
-        candidateId:
-          type: integer
-          description: Associated candidate ID
-        positionId:
-          type: integer
-          description: Associated position ID
-        applicationDate:
-          type: string
-          format: date-time
-          description: Application submission date
-        currentInterviewStep:
-          type: integer
-          description: Current interview step ID
-        notes:
-          type: string
-          nullable: true
-          description: Application notes
-
-    Interview:
-      type: object
-      properties:
-        interviewDate:
-          type: string
-          format: date-time
-          description: Interview date and time
-        interviewStep:
-          type: object
+    TripDetail:
+      allOf:
+        - $ref: '#/components/schemas/Trip'
+        - type: object
           properties:
-            name:
-              type: string
-              description: Interview step name
+            destinations:
+              type: array
+              items:
+                $ref: '#/components/schemas/TripDestination'
+
+    AddDestinationRequest:
+      type: object
+      properties:
+        cityId:
+          type: string
+          format: uuid
+        dayOrder:
+          type: integer
+          minimum: 1
+        daysCount:
+          type: integer
+          minimum: 1
+      required:
+        - cityId
+        - dayOrder
+        - daysCount
+
+    UpdateDestinationRequest:
+      type: object
+      properties:
+        dayOrder:
+          type: integer
+          minimum: 1
+        daysCount:
+          type: integer
+          minimum: 1
+
+    TripDestination:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        cityId:
+          type: string
+          format: uuid
+        city:
+          $ref: '#/components/schemas/City'
+        dayOrder:
+          type: integer
+        daysCount:
+          type: integer
         notes:
           type: string
           nullable: true
-          description: Interview notes
-        score:
-          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # Destination Schemas
+    Country:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        isoCode:
+          type: string
+          description: ISO country code
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    City:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        countryId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        timezone:
+          type: string
+          description: IANA timezone identifier
+        country:
+          $ref: '#/components/schemas/Country'
+        createdAt:
+          type: string
+          format: date-time
+
+    CityCoverage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        cityId:
+          type: string
+          format: uuid
+        level:
+          type: string
+          enum: [high, medium, low]
+          description: Coverage quality level
+        notes:
+          type: string
+          description: Coverage notes and playbook availability
+        updatedAt:
+          type: string
+          format: date-time
+
+    # Itinerary Schemas
+    Itinerary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        source:
+          type: string
+          enum: [manual, ai, mixed]
+        status:
+          type: string
+          enum: [draft, ready, archived]
+        dayPlans:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayPlan'
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateDayPlanRequest:
+      type: object
+      properties:
+        cityId:
+          type: string
+          format: uuid
+        dayDate:
+          type: string
+          format: date
+      required:
+        - cityId
+        - dayDate
+
+    UpdateDayPlanRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, planned, completed]
+
+    DayPlan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        itineraryVersionId:
+          type: string
+          format: uuid
+        cityId:
+          type: string
+          format: uuid
+        city:
+          $ref: '#/components/schemas/City'
+        dayDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [pending, planned, completed]
+        activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Activity'
+        refreshedAt:
+          type: string
+          format: date-time
           nullable: true
-          description: Interview score
 
-    FileUploadResponse:
+    # Activity Schemas
+    CreateActivityRequest:
       type: object
       properties:
-        filePath:
+        activityTypeKey:
           type: string
-          description: Uploaded file path
-        fileType:
+          description: Activity type key from ActivityTypeConfig
+        type:
           type: string
-          description: Uploaded file MIME type
+          enum: [transfer, visit, meal, freeTime, booking, other]
+        title:
+          type: string
+        locationName:
+          type: string
+          nullable: true
+        startTime:
+          type: string
+          format: date-time
+          nullable: true
+        endTime:
+          type: string
+          format: date-time
+          nullable: true
+        costEstimate:
+          type: number
+          format: decimal
+          nullable: true
+        sortOrder:
+          type: integer
+          minimum: 0
       required:
-        - filePath
-        - fileType
+        - activityTypeKey
+        - type
+        - title
 
-    PaginationMetadata:
+    UpdateActivityRequest:
       type: object
       properties:
-        total:
-          type: integer
-          description: Total number of records
-        page:
-          type: integer
-          description: Current page number
-        limit:
-          type: integer
-          description: Records per page
-        totalPages:
-          type: integer
-          description: Total number of pages
-      required:
-        - total
-        - page
-        - limit
-        - totalPages
+        title:
+          type: string
+        locationName:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        costEstimate:
+          type: number
+          format: decimal
+        isMandatory:
+          type: boolean
+        readinessStatus:
+          type: string
+          enum: [pending, planned, prepared, notNeeded]
+        readinessNote:
+          type: string
 
+    Activity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dayPlanId:
+          type: string
+          format: uuid
+        activityTypeKey:
+          type: string
+        type:
+          type: string
+          enum: [transfer, visit, meal, freeTime, booking, other]
+        title:
+          type: string
+        locationName:
+          type: string
+          nullable: true
+        costEstimate:
+          type: number
+          format: decimal
+          nullable: true
+        startTime:
+          type: string
+          format: date-time
+          nullable: true
+        endTime:
+          type: string
+          format: date-time
+          nullable: true
+        sortOrder:
+          type: integer
+        isMandatory:
+          type: boolean
+        readinessStatus:
+          type: string
+          enum: [pending, planned, prepared, notNeeded]
+        readinessNote:
+          type: string
+          nullable: true
+        preparedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ActivityDetail:
+      allOf:
+        - $ref: '#/components/schemas/Activity'
+        - type: object
+          properties:
+            documents:
+              type: array
+              items:
+                $ref: '#/components/schemas/Document'
+            progress:
+              $ref: '#/components/schemas/ActivityProgress'
+
+    ActivityProgress:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        activityId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [notStarted, inProgress, done, skipped]
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    # Document Schemas
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ticket, reservation, permit, passport, other]
+        title:
+          type: string
+        storageProvider:
+          type: string
+          description: Storage provider (e.g., s3)
+        storageKey:
+          type: string
+          description: Storage key/path
+        checksum:
+          type: string
+          description: File checksum for integrity
+        metadataJson:
+          type: object
+          description: Additional metadata
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DocumentDetail:
+      allOf:
+        - $ref: '#/components/schemas/Document'
+        - type: object
+          properties:
+            downloadUrl:
+              type: string
+              format: uri
+              description: Temporary signed URL for download
+            links:
+              type: array
+              items:
+                $ref: '#/components/schemas/DocumentLink'
+
+    DocumentLink:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        documentId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        dayPlanId:
+          type: string
+          format: uuid
+          nullable: true
+        activityId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    # Error Schema
     ErrorResponse:
       type: object
       properties:
@@ -1081,13 +1918,8 @@ components:
         error:
           type: string
           description: Detailed error information
+        code:
+          type: string
+          description: Error code
       required:
         - message
-
-tags:
-  - name: Candidates
-    description: Operations related to candidate management
-  - name: Positions
-    description: Operations related to job position management
-  - name: File Upload
-    description: Operations related to file uploads

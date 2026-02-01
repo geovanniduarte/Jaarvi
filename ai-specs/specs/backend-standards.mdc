@@ -857,6 +857,672 @@ npx prisma migrate dev --name descriptive_migration_name
 npx prisma migrate deploy
 ```
 
+### Database Seeding Strategy
+
+Database seeding is essential for local development and testing. Jaarvi requires specific seed data to function properly.
+
+#### Seed Data Requirements (MVP)
+
+**1. Activity Type Configurations** (`ActivityTypeConfig`)
+
+Activity types define the categories of activities travelers can create. Some types (like accommodation) are mandatory per day.
+
+```typescript
+// prisma/seeds/activityTypes.ts
+export const activityTypeSeeds = [
+  {
+    key: 'sleep',
+    displayName: 'Accommodation',
+    isMandatoryDaily: true,
+    requiresEvidence: true,
+    allowNotNeeded: false
+  },
+  {
+    key: 'transfer',
+    displayName: 'Transportation',
+    isMandatoryDaily: false,
+    requiresEvidence: false,
+    allowNotNeeded: true
+  },
+  {
+    key: 'visit',
+    displayName: 'Visit/Attraction',
+    isMandatoryDaily: false,
+    requiresEvidence: false,
+    allowNotNeeded: true
+  },
+  {
+    key: 'meal',
+    displayName: 'Meal',
+    isMandatoryDaily: false,
+    requiresEvidence: false,
+    allowNotNeeded: true
+  },
+  {
+    key: 'free_time',
+    displayName: 'Free Time',
+    isMandatoryDaily: false,
+    requiresEvidence: false,
+    allowNotNeeded: true
+  }
+];
+```
+
+**2. Countries & Cities** (`Country`, `City`, `CityCoverage`)
+
+Initial MVP destinations with coverage information:
+
+```typescript
+// prisma/seeds/destinations.ts
+export const destinationSeeds = [
+  {
+    country: {
+      isoCode: 'FR',
+      name: 'France'
+    },
+    cities: [
+      {
+        name: 'Paris',
+        timezone: 'Europe/Paris',
+        coverage: { level: 'high', notes: 'Full playbooks available' }
+      },
+      {
+        name: 'Lyon',
+        timezone: 'Europe/Paris',
+        coverage: { level: 'medium', notes: 'Basic guidance only' }
+      }
+    ]
+  },
+  {
+    country: {
+      isoCode: 'IT',
+      name: 'Italy'
+    },
+    cities: [
+      {
+        name: 'Rome',
+        timezone: 'Europe/Rome',
+        coverage: { level: 'high', notes: 'Full playbooks available' }
+      },
+      {
+        name: 'Florence',
+        timezone: 'Europe/Rome',
+        coverage: { level: 'high', notes: 'Full playbooks available' }
+      },
+      {
+        name: 'Venice',
+        timezone: 'Europe/Rome',
+        coverage: { level: 'medium', notes: 'Expanding coverage' }
+      }
+    ]
+  },
+  {
+    country: {
+      isoCode: 'ES',
+      name: 'Spain'
+    },
+    cities: [
+      {
+        name: 'Barcelona',
+        timezone: 'Europe/Madrid',
+        coverage: { level: 'high', notes: 'Full playbooks available' }
+      },
+      {
+        name: 'Madrid',
+        timezone: 'Europe/Madrid',
+        coverage: { level: 'high', notes: 'Full playbooks available' }
+      }
+    ]
+  },
+  {
+    country: {
+      isoCode: 'JP',
+      name: 'Japan'
+    },
+    cities: [
+      {
+        name: 'Tokyo',
+        timezone: 'Asia/Tokyo',
+        coverage: { level: 'medium', notes: 'Expanding coverage' }
+      },
+      {
+        name: 'Kyoto',
+        timezone: 'Asia/Tokyo',
+        coverage: { level: 'medium', notes: 'Expanding coverage' }
+      },
+      {
+        name: 'Osaka',
+        timezone: 'Asia/Tokyo',
+        coverage: { level: 'medium', notes: 'Expanding coverage' }
+      }
+    ]
+  },
+  {
+    country: {
+      isoCode: 'GB',
+      name: 'United Kingdom'
+    },
+    cities: [
+      {
+        name: 'London',
+        timezone: 'Europe/London',
+        coverage: { level: 'high', notes: 'Full playbooks available' }
+      }
+    ]
+  },
+  {
+    country: {
+      isoCode: 'US',
+      name: 'United States'
+    },
+    cities: [
+      {
+        name: 'New York',
+        timezone: 'America/New_York',
+        coverage: { level: 'high', notes: 'Full playbooks available' }
+      },
+      {
+        name: 'San Francisco',
+        timezone: 'America/Los_Angeles',
+        coverage: { level: 'medium', notes: 'Basic guidance' }
+      }
+    ]
+  }
+];
+```
+
+**3. Test Users** (Development Only)
+
+Create test accounts for development and testing:
+
+```typescript
+// prisma/seeds/users.ts
+import { hashPassword } from '../src/infrastructure/auth';
+
+export const testUserSeeds = [
+  {
+    email: 'test@jaarvi.app',
+    displayName: 'Test User',
+    emailVerifiedAt: new Date(),
+    status: 'active',
+    credential: {
+      passwordHash: await hashPassword('TestPassword123'),
+      passwordAlgo: 'argon2id'
+    }
+  },
+  {
+    email: 'demo@jaarvi.app',
+    displayName: 'Demo User',
+    emailVerifiedAt: new Date(),
+    status: 'active',
+    credential: {
+      passwordHash: await hashPassword('DemoPassword123'),
+      passwordAlgo: 'argon2id'
+    }
+  },
+  {
+    email: 'admin@jaarvi.app',
+    displayName: 'Admin User',
+    emailVerifiedAt: new Date(),
+    status: 'active',
+    credential: {
+      passwordHash: await hashPassword('AdminPassword123'),
+      passwordAlgo: 'argon2id'
+    }
+  }
+];
+```
+
+**4. Sample Trip Data** (Development Only)
+
+Example trips for testing UI and flows:
+
+```typescript
+// prisma/seeds/sampleTrips.ts
+export const sampleTripSeeds = [
+  {
+    name: 'France & Italy Adventure',
+    ownerId: 'test-user-uuid', // Will be resolved after user creation
+    startDate: new Date('2026-03-15'),
+    endDate: new Date('2026-03-28'),
+    status: 'draft',
+    destinations: [
+      {
+        cityName: 'Paris',
+        dayOrder: 1,
+        daysCount: 5,
+        notes: 'Explore the City of Light'
+      },
+      {
+        cityName: 'Rome',
+        dayOrder: 2,
+        daysCount: 4,
+        notes: 'Ancient history and amazing food'
+      },
+      {
+        cityName: 'Florence',
+        dayOrder: 3,
+        daysCount: 4,
+        notes: 'Renaissance art and architecture'
+      }
+    ]
+  },
+  {
+    name: 'Japan Discovery',
+    ownerId: 'demo-user-uuid',
+    startDate: new Date('2026-04-05'),
+    endDate: new Date('2026-04-19'),
+    status: 'active',
+    destinations: [
+      {
+        cityName: 'Tokyo',
+        dayOrder: 1,
+        daysCount: 7,
+        notes: 'Modern metropolis'
+      },
+      {
+        cityName: 'Kyoto',
+        dayOrder: 2,
+        daysCount: 4,
+        notes: 'Traditional temples and gardens'
+      },
+      {
+        cityName: 'Osaka',
+        dayOrder: 3,
+        daysCount: 3,
+        notes: 'Street food paradise'
+      }
+    ]
+  }
+];
+```
+
+#### Seed Execution Commands
+
+Add these scripts to `package.json`:
+
+```json
+{
+  "scripts": {
+    "seed": "ts-node prisma/seed.ts",
+    "seed:activity-types": "ts-node prisma/seeds/activityTypes.ts",
+    "seed:destinations": "ts-node prisma/seeds/destinations.ts",
+    "seed:test-users": "ts-node prisma/seeds/users.ts",
+    "seed:sample-trips": "ts-node prisma/seeds/sampleTrips.ts"
+  }
+}
+```
+
+**Usage**:
+
+```bash
+# Run all seeds (recommended for fresh database)
+npm run seed
+
+# Run specific seeds (for targeted updates)
+npm run seed:activity-types
+npm run seed:destinations
+npm run seed:test-users
+npm run seed:sample-trips
+```
+
+#### Seed Script Structure
+
+Create a comprehensive seed script that runs all seeds in the correct order:
+
+```typescript
+// prisma/seed.ts
+import { PrismaClient } from '@prisma/client';
+import { activityTypeSeeds } from './seeds/activityTypes';
+import { destinationSeeds } from './seeds/destinations';
+import { testUserSeeds } from './seeds/users';
+import { sampleTripSeeds } from './seeds/sampleTrips';
+import { hashPassword } from '../src/infrastructure/auth';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('🌱 Starting database seeding...');
+  
+  // ========================================
+  // 1. Seed Activity Types (Required)
+  // ========================================
+  console.log('\n📝 Seeding activity types...');
+  for (const type of activityTypeSeeds) {
+    await prisma.activityTypeConfig.upsert({
+      where: { key: type.key },
+      update: type,
+      create: type
+    });
+    console.log(`  ✓ ${type.displayName} (${type.key})`);
+  }
+  
+  // ========================================
+  // 2. Seed Destinations (Required)
+  // ========================================
+  console.log('\n🗺️  Seeding destinations...');
+  for (const dest of destinationSeeds) {
+    // Create or update country
+    const country = await prisma.country.upsert({
+      where: { isoCode: dest.country.isoCode },
+      update: { name: dest.country.name },
+      create: dest.country
+    });
+    console.log(`  ✓ ${country.name} (${country.isoCode})`);
+    
+    // Create or update cities
+    for (const cityData of dest.cities) {
+      const city = await prisma.city.upsert({
+        where: {
+          countryId_name: {
+            countryId: country.id,
+            name: cityData.name
+          }
+        },
+        update: {
+          timezone: cityData.timezone
+        },
+        create: {
+          countryId: country.id,
+          name: cityData.name,
+          timezone: cityData.timezone
+        }
+      });
+      
+      // Create or update coverage
+      await prisma.cityCoverage.upsert({
+        where: { cityId: city.id },
+        update: {
+          level: cityData.coverage.level,
+          notes: cityData.coverage.notes
+        },
+        create: {
+          cityId: city.id,
+          level: cityData.coverage.level,
+          notes: cityData.coverage.notes
+        }
+      });
+      
+      console.log(`    • ${cityData.name} (${cityData.coverage.level} coverage)`);
+    }
+  }
+  
+  // ========================================
+  // 3. Seed Test Users (Development Only)
+  // ========================================
+  if (process.env.NODE_ENV === 'development') {
+    console.log('\n👥 Seeding test users...');
+    
+    for (const userData of testUserSeeds) {
+      const passwordHash = await hashPassword(userData.credential.passwordHash);
+      
+      const user = await prisma.user.upsert({
+        where: { email: userData.email },
+        update: {},
+        create: {
+          email: userData.email,
+          displayName: userData.displayName,
+          emailVerifiedAt: userData.emailVerifiedAt,
+          status: userData.status
+        }
+      });
+      
+      // Create credential
+      await prisma.userCredential.upsert({
+        where: { userId: user.id },
+        update: {
+          passwordHash,
+          passwordAlgo: 'argon2id',
+          passwordUpdatedAt: new Date()
+        },
+        create: {
+          userId: user.id,
+          passwordHash,
+          passwordAlgo: 'argon2id',
+          passwordUpdatedAt: new Date()
+        }
+      });
+      
+      console.log(`  ✓ ${userData.email}`);
+    }
+    
+    // ========================================
+    // 4. Seed Sample Trips (Development Only)
+    // ========================================
+    console.log('\n✈️  Seeding sample trips...');
+    
+    const testUser = await prisma.user.findUnique({
+      where: { email: 'test@jaarvi.app' }
+    });
+    const demoUser = await prisma.user.findUnique({
+      where: { email: 'demo@jaarvi.app' }
+    });
+    
+    if (testUser && demoUser) {
+      for (const tripData of sampleTripSeeds) {
+        const ownerId = tripData.ownerId === 'test-user-uuid' ? testUser.id : demoUser.id;
+        
+        const trip = await prisma.trip.create({
+          data: {
+            name: tripData.name,
+            ownerId,
+            startDate: tripData.startDate,
+            endDate: tripData.endDate,
+            status: tripData.status
+          }
+        });
+        
+        console.log(`  ✓ ${tripData.name}`);
+        
+        // Add destinations
+        for (const destData of tripData.destinations) {
+          const city = await prisma.city.findFirst({
+            where: { name: destData.cityName }
+          });
+          
+          if (city) {
+            await prisma.tripDestination.create({
+              data: {
+                tripId: trip.id,
+                cityId: city.id,
+                dayOrder: destData.dayOrder,
+                daysCount: destData.daysCount,
+                notes: destData.notes
+              }
+            });
+            console.log(`    • ${destData.cityName} (${destData.daysCount} days)`);
+          }
+        }
+      }
+    }
+  } else {
+    console.log('\n⏭️  Skipping test users and sample trips (not in development mode)');
+  }
+  
+  console.log('\n✅ Database seeding completed successfully!');
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ Error during seeding:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+```
+
+**Configure Prisma to use seed script**:
+
+Add to `prisma/schema.prisma`:
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Add this section
+// prisma db seed will use this configuration
+```
+
+Add to `package.json`:
+
+```json
+{
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
+}
+```
+
+#### Migration Best Practices
+
+**Migration Naming Convention**:
+
+Use descriptive names that clearly indicate what the migration does:
+
+```bash
+# Good examples
+npx prisma migrate dev --name add_user_authentication_tables
+npx prisma migrate dev --name create_trip_and_destination_tables
+npx prisma migrate dev --name add_activity_mandatory_fields
+npx prisma migrate dev --name add_document_vault_tables
+npx prisma migrate dev --name add_oauth_support
+
+# Avoid vague names
+npx prisma migrate dev --name update_db
+npx prisma migrate dev --name fixes
+```
+
+**Migration Review Checklist**:
+
+Before applying migrations, review the generated SQL:
+
+- [ ] Review generated SQL in `prisma/migrations/[timestamp]_[name]/migration.sql`
+- [ ] Verify foreign key constraints are correct
+- [ ] Check indexes on frequently queried fields (userId, tripId, etc.)
+- [ ] Ensure NOT NULL constraints don't break existing data
+- [ ] Test migration on local database first
+- [ ] Document breaking changes in migration file comments
+- [ ] Verify unique constraints are appropriate
+- [ ] Check cascade delete behavior (ON DELETE CASCADE/SET NULL)
+
+**Rollback Strategy**:
+
+While Prisma doesn't support automatic rollbacks, follow these practices:
+
+- **Keep migrations small and atomic**: One logical change per migration
+- **Test rollback procedures locally**: Create manual rollback SQL scripts for complex migrations
+- **Backup database before production migrations**: Always create a snapshot before applying migrations
+- **Use transactions where possible**: Prisma migrations run in transactions by default
+- **Manual rollback scripts**: For critical migrations, prepare rollback SQL:
+
+```sql
+-- Example rollback script for adding a column
+-- Migration: add_activity_readiness_fields
+-- To rollback:
+ALTER TABLE "Activity" DROP COLUMN IF EXISTS "isMandatory";
+ALTER TABLE "Activity" DROP COLUMN IF EXISTS "readinessStatus";
+ALTER TABLE "Activity" DROP COLUMN IF EXISTS "readinessNote";
+ALTER TABLE "Activity" DROP COLUMN IF EXISTS "preparedAt";
+```
+
+**Data Migration for Existing Users**:
+
+When schema changes require data transformation, include data migration SQL:
+
+```typescript
+// Example: Migrating existing trips to add mandatory activities
+// prisma/migrations/[timestamp]_add_mandatory_activities/migration.sql
+
+-- Step 1: Add new fields
+ALTER TABLE "Activity" ADD COLUMN "isMandatory" BOOLEAN DEFAULT false;
+ALTER TABLE "Activity" ADD COLUMN "readinessStatus" VARCHAR(20) DEFAULT 'pending';
+ALTER TABLE "Activity" ADD COLUMN "readinessNote" TEXT;
+ALTER TABLE "Activity" ADD COLUMN "preparedAt" TIMESTAMP;
+
+-- Step 2: Create mandatory sleep activities for existing day plans
+INSERT INTO "Activity" (
+  "id",
+  "dayPlanId", 
+  "activityTypeKey", 
+  "type", 
+  "title", 
+  "isMandatory", 
+  "readinessStatus",
+  "sortOrder"
+)
+SELECT 
+  gen_random_uuid(),
+  dp.id,
+  'sleep',
+  'booking',
+  'Accommodation',
+  true,
+  'pending',
+  999  -- Place at end of day
+FROM "DayPlan" dp
+WHERE NOT EXISTS (
+  SELECT 1 FROM "Activity" a 
+  WHERE a."dayPlanId" = dp.id 
+  AND a."activityTypeKey" = 'sleep'
+);
+
+-- Step 3: Update existing accommodation activities to mandatory
+UPDATE "Activity"
+SET 
+  "isMandatory" = true,
+  "activityTypeKey" = 'sleep'
+WHERE 
+  "type" = 'booking'
+  AND ("title" ILIKE '%hotel%' OR "title" ILIKE '%accommodation%' OR "title" ILIKE '%hostel%');
+
+-- Step 4: Add helpful comment
+COMMENT ON COLUMN "Activity"."isMandatory" IS 'Indicates if this activity type is mandatory per day (e.g., accommodation)';
+```
+
+**Migration Testing Process**:
+
+1. **Local Testing**:
+   ```bash
+   # Create migration
+   npx prisma migrate dev --name add_new_feature
+   
+   # Test with seed data
+   npm run seed
+   
+   # Verify application works
+   npm run dev
+   ```
+
+2. **Staging Environment**:
+   ```bash
+   # Apply migration to staging
+   npx prisma migrate deploy
+   
+   # Run integration tests
+   npm test
+   
+   # Manual QA testing
+   ```
+
+3. **Production Deployment**:
+   ```bash
+   # Backup database
+   pg_dump -h production-db-host -U user -d jaarvi_prod > backup_$(date +%Y%m%d_%H%M%S).sql
+   
+   # Apply migration
+   npx prisma migrate deploy
+   
+   # Verify application health
+   curl https://api.jaarvi.app/health
+   ```
+
 ### Repository Pattern
 
 - **Repository Interfaces**: Define repository interfaces in the domain layer
@@ -1164,6 +1830,575 @@ export async function getCandidate(req: Request, res: Response) {
     });
     res.json(candidate);
 }
+```
+
+### Authentication & Authorization Patterns
+
+Authentication is a critical security component in Jaarvi. The system implements JWT-based authentication with support for both email/password and OAuth providers (Google, Apple).
+
+#### JWT Token Structure
+
+Jaarvi uses a dual-token system with short-lived access tokens and long-lived refresh tokens:
+
+- **Access Token**: Short-lived (15 minutes), contains user claims
+- **Refresh Token**: Long-lived (7 days), stored hashed in database
+- **Token Rotation**: Refresh tokens are rotated on each refresh for enhanced security
+
+**Token Payload Structure**:
+
+```typescript
+interface JWTPayload {
+  sub: string;          // User UUID
+  email: string;        // User email
+  iat: number;          // Issued at timestamp
+  exp: number;          // Expiration timestamp
+  type: 'access' | 'refresh';  // Token type
+}
+```
+
+**Token Generation Example**:
+
+```typescript
+import jwt from 'jsonwebtoken';
+
+export function generateAccessToken(user: User): string {
+  return jwt.sign(
+    {
+      sub: user.id,
+      email: user.email,
+      type: 'access'
+    },
+    process.env.JWT_SECRET!,
+    { expiresIn: process.env.JWT_ACCESS_EXPIRATION || '15m' }
+  );
+}
+
+export function generateRefreshToken(user: User): string {
+  return jwt.sign(
+    {
+      sub: user.id,
+      email: user.email,
+      type: 'refresh'
+    },
+    process.env.JWT_SECRET!,
+    { expiresIn: process.env.JWT_REFRESH_EXPIRATION || '7d' }
+  );
+}
+```
+
+#### OAuth 2.0 Flow (Google & Apple Sign-In)
+
+Jaarvi supports OAuth authentication for seamless user onboarding:
+
+**OAuth Flow Steps**:
+
+1. **Frontend initiates OAuth** with provider (Google/Apple)
+2. **Provider returns authorization code** to frontend callback
+3. **Frontend sends code to backend** `/api/auth/oauth/{provider}` endpoint
+4. **Backend exchanges code** for provider access token
+5. **Backend retrieves user profile** from provider
+6. **Backend creates or links user account** in Jaarvi database
+7. **Backend returns Jaarvi JWT tokens** (access + refresh)
+
+**OAuth Implementation Example**:
+
+```typescript
+import { google } from 'googleapis';
+
+export async function authenticateWithGoogle(code: string): Promise<AuthResponse> {
+  // Exchange authorization code for tokens
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
+  );
+  
+  const { tokens } = await oauth2Client.getToken(code);
+  oauth2Client.setCredentials(tokens);
+  
+  // Get user profile from Google
+  const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+  const { data } = await oauth2.userinfo.get();
+  
+  // Find or create user in Jaarvi database
+  let user = await prisma.user.findUnique({
+    where: { email: data.email! }
+  });
+  
+  if (!user) {
+    // Create new user
+    user = await prisma.user.create({
+      data: {
+        email: data.email!,
+        displayName: data.name || data.email!,
+        emailVerifiedAt: new Date(),
+        status: 'active'
+      }
+    });
+    
+    // Create OAuth account link
+    await prisma.oAuthAccount.create({
+      data: {
+        userId: user.id,
+        provider: 'google',
+        providerAccountId: data.id!,
+        accessTokenEncrypted: encryptToken(tokens.access_token!),
+        refreshTokenEncrypted: tokens.refresh_token ? encryptToken(tokens.refresh_token) : null,
+        tokenExpiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null
+      }
+    });
+  }
+  
+  // Generate Jaarvi JWT tokens
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+  
+  // Store refresh token in database
+  await storeRefreshToken(user.id, refreshToken);
+  
+  return { user, accessToken, refreshToken };
+}
+```
+
+#### Session Management
+
+Jaarvi tracks sessions to support multiple concurrent devices and enable session revocation:
+
+- **Session Tracking**: Each login creates a `Session` record with device information
+- **Multiple Sessions**: Users can be logged in on multiple devices simultaneously
+- **Session Revocation**: Logout revokes the current session and associated refresh token
+- **Refresh Token Rotation**: Each refresh creates a new token and marks the old one as rotated
+
+**Session Storage Example**:
+
+```typescript
+export async function createSession(
+  userId: string,
+  deviceName: string,
+  userAgent: string,
+  ipAddress: string
+): Promise<Session> {
+  return await prisma.session.create({
+    data: {
+      userId,
+      deviceName,
+      userAgent,
+      ipAddress,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+    }
+  });
+}
+
+export async function revokeSession(sessionId: string): Promise<void> {
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: { revokedAt: new Date() }
+  });
+  
+  // Also revoke all refresh tokens for this session
+  await prisma.refreshToken.updateMany({
+    where: { sessionId },
+    data: { revokedAt: new Date() }
+  });
+}
+```
+
+#### Password Security
+
+Password security follows industry best practices:
+
+- **Algorithm**: argon2id (recommended) or bcrypt as fallback
+- **Minimum Length**: 8 characters
+- **Password Reset**: Single-use tokens with 1-hour expiration
+- **Rate Limiting**: Maximum 5 failed login attempts per 15 minutes per IP
+
+**Password Hashing Example**:
+
+```typescript
+import argon2 from 'argon2';
+
+export async function hashPassword(password: string): Promise<string> {
+  return await argon2.hash(password, {
+    type: argon2.argon2id,
+    memoryCost: 2 ** 16,  // 64 MB
+    timeCost: 3,
+    parallelism: 1
+  });
+}
+
+export async function verifyPassword(hash: string, password: string): Promise<boolean> {
+  try {
+    return await argon2.verify(hash, password);
+  } catch (error) {
+    return false;
+  }
+}
+```
+
+**Password Reset Flow**:
+
+```typescript
+export async function requestPasswordReset(email: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    // Don't reveal if email exists (security best practice)
+    return;
+  }
+  
+  // Generate random token
+  const token = crypto.randomBytes(32).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  
+  // Store hashed token
+  await prisma.passwordResetToken.create({
+    data: {
+      userId: user.id,
+      tokenHash,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+    }
+  });
+  
+  // Send email with token (implementation depends on email service)
+  await sendPasswordResetEmail(user.email, token);
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  
+  const resetToken = await prisma.passwordResetToken.findFirst({
+    where: {
+      tokenHash,
+      usedAt: null,
+      expiresAt: { gt: new Date() }
+    },
+    include: { user: true }
+  });
+  
+  if (!resetToken) {
+    throw new Error('Invalid or expired reset token');
+  }
+  
+  // Hash new password
+  const passwordHash = await hashPassword(newPassword);
+  
+  // Update user password
+  await prisma.userCredential.update({
+    where: { userId: resetToken.userId },
+    data: {
+      passwordHash,
+      passwordAlgo: 'argon2id',
+      passwordUpdatedAt: new Date()
+    }
+  });
+  
+  // Mark token as used
+  await prisma.passwordResetToken.update({
+    where: { id: resetToken.id },
+    data: { usedAt: new Date() }
+  });
+  
+  // Revoke all existing sessions for security
+  await prisma.session.updateMany({
+    where: { userId: resetToken.userId },
+    data: { revokedAt: new Date() }
+  });
+}
+```
+
+#### API Authentication Middleware
+
+All protected routes require JWT validation via middleware:
+
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+  };
+}
+
+export async function authenticateJWT(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ message: 'Missing or invalid authorization header' });
+    return;
+  }
+  
+  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+  
+  try {
+    // Verify token
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
+    
+    // Verify token type
+    if (payload.type !== 'access') {
+      res.status(401).json({ message: 'Invalid token type' });
+      return;
+    }
+    
+    // Verify user exists and is active
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub }
+    });
+    
+    if (!user || user.status !== 'active') {
+      res.status(401).json({ message: 'User not found or inactive' });
+      return;
+    }
+    
+    // Attach user to request
+    req.user = {
+      id: user.id,
+      email: user.email
+    };
+    
+    next();
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      res.status(401).json({ message: 'Token expired' });
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      res.status(401).json({ message: 'Invalid token' });
+    } else {
+      res.status(500).json({ message: 'Authentication error' });
+    }
+  }
+}
+
+// Apply to all /api routes
+app.use('/api', authenticateJWT);
+
+// Exclude authentication routes
+app.use('/api/auth', authRoutes); // This should be registered before authenticateJWT middleware
+```
+
+#### Rate Limiting
+
+Implement rate limiting to prevent brute-force attacks:
+
+```typescript
+import rateLimit from 'express-rate-limit';
+
+// Login rate limiter: 5 attempts per 15 minutes
+export const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: 'Too many login attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply to login route
+app.post('/api/auth/login', loginLimiter, loginController);
+
+// General API rate limiter: 100 requests per 15 minutes
+export const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Too many requests, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply to all API routes
+app.use('/api', apiLimiter);
+```
+
+### Environment Configuration
+
+Proper environment configuration is critical for security and deployment flexibility.
+
+#### Required Environment Variables
+
+**Development Environment (.env.example)**:
+
+```bash
+# ========================================
+# Database Configuration
+# ========================================
+DATABASE_URL="postgresql://jaarvi_dev:jaarvi_local_dev_2024@localhost:5432/jaarvi_dev"
+
+# ========================================
+# Server Configuration
+# ========================================
+NODE_ENV=development
+PORT=3000
+
+# ========================================
+# Authentication Configuration
+# ========================================
+JWT_SECRET="development-secret-min-32-chars-change-in-production"
+JWT_ACCESS_EXPIRATION=15m
+JWT_REFRESH_EXPIRATION=7d
+
+# ========================================
+# OAuth Providers
+# ========================================
+GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+GOOGLE_REDIRECT_URI="http://localhost:3000/api/auth/oauth/google/callback"
+
+APPLE_CLIENT_ID="your.app.bundle.id"
+APPLE_TEAM_ID="your-apple-team-id"
+APPLE_KEY_ID="your-apple-key-id"
+APPLE_PRIVATE_KEY_PATH="./certs/AuthKey_XXXXX.p8"
+
+# ========================================
+# CORS Configuration
+# ========================================
+FRONTEND_URL=http://localhost:3001
+ALLOWED_ORIGINS=http://localhost:3001,http://localhost:19006,http://10.0.2.2:3000
+
+# ========================================
+# AWS Services (Phase 2)
+# ========================================
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_S3_BUCKET_DOCUMENTS=jaarvi-documents-dev
+AWS_BEDROCK_MODEL=anthropic.claude-v2  # Phase 2 only
+
+# ========================================
+# Logging Configuration
+# ========================================
+LOG_LEVEL=debug
+
+# ========================================
+# Email Service (for password reset)
+# ========================================
+EMAIL_SERVICE=smtp
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=noreply@jaarvi.app
+EMAIL_PASSWORD=your-email-password
+EMAIL_FROM=Jaarvi <noreply@jaarvi.app>
+```
+
+**Production Requirements**:
+
+- **Secrets Management**: Use AWS Secrets Manager or Parameter Store
+- **Secret Rotation**: Rotate JWT_SECRET every 90 days
+- **Logging**: Never log secrets, tokens, or passwords
+- **Environment Isolation**: Use different secrets per environment (dev/staging/prod)
+- **Encryption**: Store OAuth tokens encrypted in database
+
+#### Secret Validation on Startup
+
+Validate required environment variables at application startup to fail fast:
+
+```typescript
+// src/infrastructure/env.ts
+
+interface RequiredEnvVars {
+  DATABASE_URL: string;
+  JWT_SECRET: string;
+  JWT_ACCESS_EXPIRATION: string;
+  JWT_REFRESH_EXPIRATION: string;
+  FRONTEND_URL: string;
+  ALLOWED_ORIGINS: string;
+  NODE_ENV: 'development' | 'staging' | 'production';
+  PORT: string;
+}
+
+export function validateEnvironment(): void {
+  const requiredVars: (keyof RequiredEnvVars)[] = [
+    'DATABASE_URL',
+    'JWT_SECRET',
+    'FRONTEND_URL',
+    'ALLOWED_ORIGINS'
+  ];
+  
+  const missingVars: string[] = [];
+  
+  for (const varName of requiredVars) {
+    if (!process.env[varName]) {
+      missingVars.push(varName);
+    }
+  }
+  
+  if (missingVars.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(', ')}`
+    );
+  }
+  
+  // Validate JWT_SECRET length
+  if (process.env.JWT_SECRET!.length < 32) {
+    throw new Error('JWT_SECRET must be at least 32 characters');
+  }
+  
+  // Validate NODE_ENV
+  const validEnvs = ['development', 'staging', 'production'];
+  if (process.env.NODE_ENV && !validEnvs.includes(process.env.NODE_ENV)) {
+    throw new Error(`NODE_ENV must be one of: ${validEnvs.join(', ')}`);
+  }
+  
+  console.log('✅ Environment variables validated successfully');
+}
+
+// Call at application startup (src/index.ts)
+import { validateEnvironment } from './infrastructure/env';
+
+validateEnvironment();
+```
+
+#### Accessing Environment Variables
+
+Create typed accessors for environment variables:
+
+```typescript
+// src/infrastructure/config.ts
+
+export const config = {
+  database: {
+    url: process.env.DATABASE_URL!
+  },
+  server: {
+    port: parseInt(process.env.PORT || '3000', 10),
+    nodeEnv: process.env.NODE_ENV || 'development'
+  },
+  auth: {
+    jwtSecret: process.env.JWT_SECRET!,
+    accessTokenExpiration: process.env.JWT_ACCESS_EXPIRATION || '15m',
+    refreshTokenExpiration: process.env.JWT_REFRESH_EXPIRATION || '7d'
+  },
+  oauth: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      redirectUri: process.env.GOOGLE_REDIRECT_URI
+    },
+    apple: {
+      clientId: process.env.APPLE_CLIENT_ID,
+      teamId: process.env.APPLE_TEAM_ID,
+      keyId: process.env.APPLE_KEY_ID,
+      privateKeyPath: process.env.APPLE_PRIVATE_KEY_PATH
+    }
+  },
+  cors: {
+    frontendUrl: process.env.FRONTEND_URL!,
+    allowedOrigins: process.env.ALLOWED_ORIGINS!.split(',')
+  },
+  aws: {
+    region: process.env.AWS_REGION || 'us-east-1',
+    s3: {
+      documentsBucket: process.env.AWS_S3_BUCKET_DOCUMENTS
+    },
+    bedrock: {
+      model: process.env.AWS_BEDROCK_MODEL // Phase 2 only
+    }
+  },
+  logging: {
+    level: process.env.LOG_LEVEL || 'info'
+  }
+} as const;
 ```
 
 ## Development Workflow
