@@ -1,5 +1,16 @@
 # Backend Scaffolding - Jaarvi
 
+## Ticket Info
+
+| Field | Value |
+|-------|-------|
+| **Type** | Task |
+| **Priority** | High |
+| **Depends On** | None |
+| **Blocks** | `TICKETS/database-init.md`, All backend feature tickets |
+
+---
+
 ## [Original]
 
 > Prompt optimizado para crear el scaffolding del backend de Jaarvi siguiendo los estándares definidos en `backend-standards.mdc`.
@@ -40,10 +51,12 @@ This task creates the foundational backend infrastructure for the Jaarvi travel 
 
 - Complete project structure following layered DDD architecture
 - All configuration files (TypeScript, Jest, ESLint, Serverless)
-- Prisma ORM setup with complete database schema
-- Seed data for development and testing
+- Express application with middleware stack
 - Health check endpoint to verify the setup
-- Docker configuration for local PostgreSQL
+- Prisma client singleton (schema created in separate ticket)
+- Test utilities and mocks
+
+**Note**: Database schema, migrations, and seed data are handled in a separate ticket: `TICKETS/database-init.md`
 
 ---
 
@@ -88,6 +101,71 @@ Host: localhost:3000
 
 ---
 
+## Project Structure
+
+```
+backend/
+├── src/
+│   ├── domain/
+│   │   ├── models/
+│   │   │   └── index.ts
+│   │   ├── repositories/
+│   │   │   └── index.ts
+│   │   └── errors/
+│   │       └── index.ts
+│   ├── application/
+│   │   ├── services/
+│   │   │   └── healthService.ts
+│   │   └── validator.ts
+│   ├── presentation/
+│   │   └── controllers/
+│   │       └── healthController.ts
+│   ├── infrastructure/
+│   │   ├── prismaClient.ts
+│   │   ├── logger.ts
+│   │   ├── config.ts
+│   │   └── env.ts
+│   ├── routes/
+│   │   ├── index.ts
+│   │   └── healthRoutes.ts
+│   ├── middleware/
+│   │   ├── errorHandler.ts
+│   │   ├── requestLogger.ts
+│   │   ├── corsMiddleware.ts
+│   │   └── prismaMiddleware.ts
+│   ├── index.ts
+│   └── lambda.ts
+├── prisma/
+│   └── .gitkeep              # Placeholder for schema (created in database-init)
+├── test-utils/
+│   ├── builders/
+│   │   └── index.ts
+│   └── mocks/
+│       ├── prisma.ts
+│       └── index.ts
+├── __tests__/
+│   ├── presentation/
+│   │   └── controllers/
+│   │       └── healthController.test.ts
+│   ├── application/
+│   │   └── services/
+│   │       └── healthService.test.ts
+│   └── infrastructure/
+│       └── env.test.ts
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+├── jest.config.js
+├── .eslintrc.js
+├── .prettierrc
+├── serverless.yml
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
+---
+
 ## Files to Create
 
 ### Project Root (`backend/`)
@@ -95,7 +173,6 @@ Host: localhost:3000
 | File | Purpose |
 |------|---------|
 | `package.json` | Dependencies and npm scripts |
-| `package-lock.json` | Lock file (generated) |
 | `tsconfig.json` | TypeScript configuration (strict mode) |
 | `jest.config.js` | Jest testing configuration |
 | `.eslintrc.js` | ESLint rules and configuration |
@@ -103,19 +180,18 @@ Host: localhost:3000
 | `serverless.yml` | AWS Lambda deployment config |
 | `.env.example` | Environment variables template |
 | `.gitignore` | Git ignore patterns |
-| `docker-compose.yml` | Local PostgreSQL container |
 | `README.md` | Project documentation |
 
 ### Source Code (`backend/src/`)
 
-#### Entry Points
+#### Entry Points (2 files)
 
 | File | Purpose |
 |------|---------|
 | `src/index.ts` | Express application entry point |
 | `src/lambda.ts` | AWS Lambda handler wrapper |
 
-#### Infrastructure Layer (`src/infrastructure/`)
+#### Infrastructure Layer (4 files)
 
 | File | Purpose |
 |------|---------|
@@ -124,35 +200,35 @@ Host: localhost:3000
 | `src/infrastructure/config.ts` | Typed configuration accessor |
 | `src/infrastructure/env.ts` | Environment validation at startup |
 
-#### Presentation Layer (`src/presentation/`)
+#### Presentation Layer (1 file)
 
 | File | Purpose |
 |------|---------|
 | `src/presentation/controllers/healthController.ts` | Health check controller |
 
-#### Application Layer (`src/application/`)
+#### Application Layer (2 files)
 
 | File | Purpose |
 |------|---------|
 | `src/application/services/healthService.ts` | Health check service |
 | `src/application/validator.ts` | Input validation utilities |
 
-#### Domain Layer (`src/domain/`)
+#### Domain Layer (3 files)
 
 | File | Purpose |
 |------|---------|
 | `src/domain/models/index.ts` | Domain models barrel export |
 | `src/domain/repositories/index.ts` | Repository interfaces barrel export |
-| `src/domain/errors/index.ts` | Custom error classes |
+| `src/domain/errors/index.ts` | Custom error classes (NotFoundError, ValidationError, etc.) |
 
-#### Routes (`src/routes/`)
+#### Routes (2 files)
 
 | File | Purpose |
 |------|---------|
 | `src/routes/index.ts` | Main router aggregator |
 | `src/routes/healthRoutes.ts` | Health endpoint routes |
 
-#### Middleware (`src/middleware/`)
+#### Middleware (4 files)
 
 | File | Purpose |
 |------|---------|
@@ -161,18 +237,7 @@ Host: localhost:3000
 | `src/middleware/corsMiddleware.ts` | CORS configuration middleware |
 | `src/middleware/prismaMiddleware.ts` | Prisma client injection |
 
-### Prisma (`backend/prisma/`)
-
-| File | Purpose |
-|------|---------|
-| `prisma/schema.prisma` | Complete database schema |
-| `prisma/seed.ts` | Main seed orchestrator |
-| `prisma/seeds/activityTypes.ts` | Activity type configuration seeds |
-| `prisma/seeds/destinations.ts` | Countries and cities seeds |
-| `prisma/seeds/users.ts` | Test user seeds (dev only) |
-| `prisma/seeds/sampleTrips.ts` | Sample trip seeds (dev only) |
-
-### Test Utilities (`backend/test-utils/`)
+### Test Utilities (3 files)
 
 | File | Purpose |
 |------|---------|
@@ -180,7 +245,7 @@ Host: localhost:3000
 | `test-utils/mocks/prisma.ts` | Prisma client mock |
 | `test-utils/mocks/index.ts` | Mock utilities barrel export |
 
-### Tests (`backend/__tests__/`)
+### Tests (3 files)
 
 | File | Purpose |
 |------|---------|
@@ -188,110 +253,7 @@ Host: localhost:3000
 | `__tests__/application/services/healthService.test.ts` | Health service tests |
 | `__tests__/infrastructure/env.test.ts` | Environment validation tests |
 
----
-
-## Prisma Schema Models
-
-Complete list of models to implement in `schema.prisma`:
-
-### Authentication & Identity
-- `User`
-- `UserCredential`
-- `Session`
-- `RefreshToken`
-- `PasswordResetToken`
-- `EmailVerificationToken`
-- `OAuthAccount`
-
-### User Preferences
-- `PreferenceSet`
-
-### Trip Management
-- `Trip`
-- `TripDestination`
-- `TripPlanningContext`
-
-### Geography
-- `Country`
-- `City`
-- `CityCoverage`
-
-### Itinerary
-- `ItineraryVersion`
-- `ItineraryGeneration`
-- `DayPlan`
-- `DailyContext`
-
-### Activities
-- `ActivityTypeConfig`
-- `Activity`
-- `ActivityProgress`
-
-### Execution
-- `StepGuide`
-- `StepGuideStep`
-- `Reminder`
-- `Incident`
-
-### Documents
-- `Document`
-- `DocumentLink`
-
-### Playbooks
-- `PlaybookPack`
-- `PlaybookEntry`
-- `LocalAdvicePack`
-
-### Affiliates
-- `Recommendation`
-- `AffiliateClick`
-
----
-
-## Seed Data Requirements
-
-### 1. ActivityTypeConfig (Required - System Configuration)
-
-| key        | displayName      | isMandatoryDaily | requiresEvidence | allowNotNeeded |
-|------------|------------------|------------------|------------------|----------------|
-| sleep      | Accommodation    | true             | true             | false          |
-| transfer   | Transportation   | false            | false            | true           |
-| visit      | Visit/Attraction | false            | false            | true           |
-| meal       | Meal             | false            | false            | true           |
-| free_time  | Free Time        | false            | false            | true           |
-
-### 2. Countries & Cities with Coverage (Required - MVP Destinations)
-
-| Country        | City          | Timezone            | Coverage Level |
-|----------------|---------------|---------------------|----------------|
-| France (FR)    | Paris         | Europe/Paris        | high           |
-| France (FR)    | Lyon          | Europe/Paris        | medium         |
-| Italy (IT)     | Rome          | Europe/Rome         | high           |
-| Italy (IT)     | Florence      | Europe/Rome         | high           |
-| Italy (IT)     | Venice        | Europe/Rome         | medium         |
-| Spain (ES)     | Barcelona     | Europe/Madrid       | high           |
-| Spain (ES)     | Madrid        | Europe/Madrid       | high           |
-| Japan (JP)     | Tokyo         | Asia/Tokyo          | medium         |
-| Japan (JP)     | Kyoto         | Asia/Tokyo          | medium         |
-| Japan (JP)     | Osaka         | Asia/Tokyo          | medium         |
-| UK (GB)        | London        | Europe/London       | high           |
-| USA (US)       | New York      | America/New_York    | high           |
-| USA (US)       | San Francisco | America/Los_Angeles | medium         |
-
-### 3. Test Users (Development Only)
-
-| Email              | Display Name | Password (plain) | Status |
-|--------------------|--------------|------------------|--------|
-| test@jaarvi.app    | Test User    | TestPassword123  | active |
-| demo@jaarvi.app    | Demo User    | DemoPassword123  | active |
-| admin@jaarvi.app   | Admin User   | AdminPassword123 | active |
-
-### 4. Sample Trips (Development Only)
-
-| Trip Name               | Owner Email         | Destinations                          |
-|-------------------------|---------------------|---------------------------------------|
-| France & Italy Adventure| test@jaarvi.app     | Paris (5d) → Rome (4d) → Florence (4d)|
-| Japan Discovery         | demo@jaarvi.app     | Tokyo (7d) → Kyoto (4d) → Osaka (3d)  |
+### Total Files: 28 files
 
 ---
 
@@ -345,17 +307,13 @@ LOG_LEVEL=debug
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:migrate:prod": "prisma migrate deploy",
-    "seed": "ts-node prisma/seed.ts",
-    "seed:activity-types": "ts-node prisma/seeds/activityTypes.ts",
-    "seed:destinations": "ts-node prisma/seeds/destinations.ts",
-    "seed:test-users": "ts-node prisma/seeds/users.ts",
-    "seed:sample-trips": "ts-node prisma/seeds/sampleTrips.ts"
+    "format": "prettier --write \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit"
   }
 }
 ```
+
+**Note**: Database scripts (`prisma:*`, `seed`, `db:*`) are added in `TICKETS/database-init.md`
 
 ---
 
@@ -394,7 +352,8 @@ LOG_LEVEL=debug
   "@types/jest": "^29.x",
   "eslint": "^8.x",
   "@typescript-eslint/eslint-plugin": "^6.x",
-  "@typescript-eslint/parser": "^6.x"
+  "@typescript-eslint/parser": "^6.x",
+  "prettier": "^3.x"
 }
 ```
 
@@ -405,47 +364,43 @@ LOG_LEVEL=debug
 ### AC1: Project Structure
 - [ ] Project folder `backend/` is created at workspace root
 - [ ] All directories follow the layered architecture pattern
-- [ ] All configuration files are present and valid
+- [ ] All 28 files are created
 
 ### AC2: TypeScript Configuration
 - [ ] `tsconfig.json` uses strict mode
 - [ ] ESLint is configured with TypeScript rules
-- [ ] Build completes without errors: `npm run build`
+- [ ] Prettier is configured
+- [ ] `npm run build` compiles without errors
 
 ### AC3: Express Application
 - [ ] Server starts on configured PORT: `npm run dev`
 - [ ] CORS is configured for allowed origins
-- [ ] Request logging middleware is active
-- [ ] Error handling middleware catches all errors
+- [ ] Helmet middleware is active for security headers
+- [ ] Request logging middleware logs all requests
+- [ ] Error handling middleware catches all errors and returns consistent format
 
 ### AC4: Health Endpoint
 - [ ] `GET /api/health` returns 200 with expected JSON structure
-- [ ] Response includes `success`, `message`, `timestamp`
+- [ ] Response includes `success`, `message`, `timestamp`, `version`, `environment`
 - [ ] Message is "Hola, soy Jaarvi"
 
-### AC5: Prisma Setup
-- [ ] `schema.prisma` contains all 27 models
-- [ ] `npx prisma generate` completes successfully
-- [ ] `npx prisma migrate dev --name init` creates migration
+### AC5: Infrastructure
+- [ ] Prisma client singleton is created (ready for schema)
+- [ ] Logger is configured with Winston
+- [ ] Config module exports typed environment variables
+- [ ] Environment validation runs at startup and fails fast on missing variables
 
-### AC6: Database Seeding
-- [ ] `npm run seed` executes without errors
-- [ ] ActivityTypeConfig table has 5 records
-- [ ] Country table has 6 records
-- [ ] City table has 13 records
-- [ ] CityCoverage table has 13 records
-- [ ] User table has 3 test users (in development)
-
-### AC7: Docker Configuration
-- [ ] `docker-compose.yml` defines PostgreSQL service
-- [ ] `docker-compose up -d` starts database container
-- [ ] Database is accessible on localhost:5432
-
-### AC8: Testing
+### AC6: Testing
 - [ ] Jest is configured with TypeScript support
 - [ ] `npm test` runs without configuration errors
-- [ ] Health controller has unit tests
+- [ ] Health controller tests pass
+- [ ] Health service tests pass
+- [ ] Environment validation tests pass
 - [ ] Coverage threshold is set to 90%
+
+### AC7: Lambda Support
+- [ ] `lambda.ts` wraps Express app with serverless-http
+- [ ] `serverless.yml` is configured for AWS Lambda deployment
 
 ---
 
@@ -472,6 +427,7 @@ describe('HealthService', () => {
     it('should return health status object');
     it('should include current timestamp');
     it('should read version from package.json');
+    it('should include environment from config');
   });
 });
 ```
@@ -483,8 +439,10 @@ describe('Environment Validation', () => {
   describe('validateEnvironment', () => {
     it('should pass with all required variables');
     it('should throw error when DATABASE_URL is missing');
+    it('should throw error when JWT_SECRET is missing');
     it('should throw error when JWT_SECRET is too short');
     it('should validate NODE_ENV values');
+    it('should use default PORT if not provided');
   });
 });
 ```
@@ -498,7 +456,7 @@ describe('Environment Validation', () => {
 - [ ] No secrets committed to repository
 - [ ] Helmet middleware for security headers
 - [ ] CORS restricted to allowed origins only
-- [ ] Password hashing uses argon2id
+- [ ] Error responses don't leak internal details
 
 ### Performance
 - [ ] Prisma client is singleton (not recreated per request)
@@ -507,15 +465,17 @@ describe('Environment Validation', () => {
 
 ### Code Quality
 - [ ] ESLint passes with zero errors
+- [ ] Prettier format is consistent
 - [ ] TypeScript strict mode enabled
 - [ ] All functions have explicit return types
 - [ ] No `any` types in production code
+- [ ] All public functions have JSDoc comments
 
 ### Documentation
 - [ ] README.md includes setup instructions
 - [ ] README.md includes available npm scripts
 - [ ] README.md includes environment variables list
-- [ ] All public functions have JSDoc comments
+- [ ] README.md references database-init ticket for DB setup
 
 ---
 
@@ -527,7 +487,9 @@ describe('Environment Validation', () => {
 3. Install all dependencies
 4. Configure TypeScript (`tsconfig.json`)
 5. Configure ESLint (`.eslintrc.js`)
-6. Configure Jest (`jest.config.js`)
+6. Configure Prettier (`.prettierrc`)
+7. Configure Jest (`jest.config.js`)
+8. Create `.gitignore`
 
 ### Phase 2: Infrastructure Setup
 1. Create `src/infrastructure/env.ts` with validation
@@ -535,39 +497,48 @@ describe('Environment Validation', () => {
 3. Create `src/infrastructure/logger.ts` with Winston
 4. Create `src/infrastructure/prismaClient.ts` singleton
 
-### Phase 3: Express Application
+### Phase 3: Domain Layer
+1. Create `src/domain/errors/index.ts` with custom error classes
+2. Create `src/domain/models/index.ts` barrel export
+3. Create `src/domain/repositories/index.ts` barrel export
+
+### Phase 4: Application Layer
+1. Create `src/application/validator.ts`
+2. Create `src/application/services/healthService.ts`
+
+### Phase 5: Presentation Layer
+1. Create `src/presentation/controllers/healthController.ts`
+
+### Phase 6: Middleware
+1. Create `src/middleware/errorHandler.ts`
+2. Create `src/middleware/requestLogger.ts`
+3. Create `src/middleware/corsMiddleware.ts`
+4. Create `src/middleware/prismaMiddleware.ts`
+
+### Phase 7: Routes
+1. Create `src/routes/healthRoutes.ts`
+2. Create `src/routes/index.ts`
+
+### Phase 8: Entry Points
 1. Create `src/index.ts` with Express app
-2. Create middleware (error handler, CORS, logging, Prisma)
-3. Create routes structure
-4. Create `src/lambda.ts` for serverless
+2. Create `src/lambda.ts` for serverless
 
-### Phase 4: Health Endpoint
-1. Create `src/application/services/healthService.ts`
-2. Create `src/presentation/controllers/healthController.ts`
-3. Create `src/routes/healthRoutes.ts`
-4. Write unit tests for health endpoint
+### Phase 9: Test Utilities
+1. Create `test-utils/mocks/prisma.ts`
+2. Create `test-utils/mocks/index.ts`
+3. Create `test-utils/builders/index.ts`
 
-### Phase 5: Prisma & Database
-1. Create `prisma/schema.prisma` with all models
-2. Create `docker-compose.yml` for PostgreSQL
-3. Run `docker-compose up -d`
-4. Run `npx prisma migrate dev --name init`
+### Phase 10: Tests
+1. Create `__tests__/infrastructure/env.test.ts`
+2. Create `__tests__/application/services/healthService.test.ts`
+3. Create `__tests__/presentation/controllers/healthController.test.ts`
 
-### Phase 6: Seed Data
-1. Create `prisma/seeds/activityTypes.ts`
-2. Create `prisma/seeds/destinations.ts`
-3. Create `prisma/seeds/users.ts`
-4. Create `prisma/seeds/sampleTrips.ts`
-5. Create `prisma/seed.ts` orchestrator
-6. Run `npm run seed`
-
-### Phase 7: Deployment Configuration
+### Phase 11: Deployment Config
 1. Create `serverless.yml`
 2. Create `.env.example`
-3. Update `.gitignore`
-4. Create `README.md`
+3. Create `README.md`
 
-### Phase 8: Verification
+### Phase 12: Verification
 1. Run `npm run lint`
 2. Run `npm run build`
 3. Run `npm test`
@@ -577,21 +548,28 @@ describe('Environment Validation', () => {
 
 ## Definition of Done
 
-- [ ] All files listed in "Files to Create" section exist
-- [ ] All acceptance criteria are met
-- [ ] All unit tests pass with 90%+ coverage
-- [ ] ESLint reports zero errors
-- [ ] TypeScript compiles without errors
-- [ ] Docker PostgreSQL container starts successfully
-- [ ] Database migrations apply successfully
-- [ ] Seed data populates correctly
-- [ ] Health endpoint returns expected response
+- [ ] All 28 files are created
+- [ ] `npm install` completes without errors
+- [ ] `npm run build` compiles without errors
+- [ ] `npm run lint` passes with zero errors
+- [ ] `npm test` passes with 90%+ coverage
+- [ ] `npm run dev` starts server successfully
+- [ ] `GET /api/health` returns expected response
 - [ ] README.md is complete with setup instructions
 - [ ] No secrets are committed to the repository
+- [ ] All JSDoc comments are in place
+
+---
+
+## Next Steps
+
+After completing this ticket, proceed with:
+
+1. **`TICKETS/database-init.md`** - Create database schema, migrations, and seed data
 
 ---
 
 ## References
 
 - `ai-specs/specs/backend-standards.mdc` - Backend development standards
-- `product-discovery/6-DataBase.md` - Database schema specification
+- `product-discovery/6-DataBase.md` - Database schema specification (for database-init ticket)

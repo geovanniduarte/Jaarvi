@@ -1773,6 +1773,8 @@ Modelo propuesto (resumen): PostgreSQL + Prisma. Incluye usuarios y autenticaci√
 
 **Ticket 3**
 
+[TICKET 3](/ai-specs/changes/TICKETS/database-init.md)
+
 ---
 
 ## 7. Pull Requests
