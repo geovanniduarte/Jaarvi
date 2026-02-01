@@ -513,7 +513,15 @@ You are a software expert analyst, i am Building Jaarvi, a mobile app that helps
 
 **Prompt 1:**
 
+/meta-prompt  Necesito crear el scaffolding de la aplicación backend llamada `jaarvibackend`, basado en los@ai-specs/specs/backend-standards.mdc de jaarvi, debe tener una api de prueba que retorne "hola soy jarvi", identifica cuales deben ser los datos semilla de prisma que deben ser añadidos.
+
+/enrich-us @ai-specs/changes/scaffolding/backend-scaffolding.md 
+
 **Prompt 2:**
+
+/meta-prompt  Necesito crear el scaffolding de la aplicación móvil frontend, basado en los  @ai-specs/specs/frontend-standards.mdc , the MOBILE architecture  @readme.md:841  and  the structure defined in @readme.md:1301 
+
+/enrich-us @ai-specs/changes/TICKETS/frontend-scaffolding.md 
 
 **Prompt 3:**
 

@@ -1765,7 +1765,11 @@ Modelo propuesto (resumen): PostgreSQL + Prisma. Incluye usuarios y autenticaci√
 
 **Ticket 1**
 
+[TICKET 1](/ai-specs/changes/TICKETS/backend-scaffolding.md)
+
 **Ticket 2**
+
+[TICKET 2](/ai-specs/changes/TICKETS/frontend-scaffolding.md)
 
 **Ticket 3**
 
