@@ -1,0 +1,125 @@
+# Deployment Template para Kubernetes
+# Reemplazar variables {{...}} antes de aplicar
+#
+# Uso: kubectl apply -f deployment.yaml -n {{NAMESPACE}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{APP_NAME}}
+  namespace: {{NAMESPACE}}
+  labels:
+    app: {{APP_NAME}}
+    version: "{{TAG}}"
+    managed-by: kubectl
+spec:
+  replicas: {{REPLICAS}}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: {{APP_NAME}}
+  template:
+    metadata:
+      labels:
+        app: {{APP_NAME}}
+        version: "{{TAG}}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{PORT}}"
+    spec:
+      # Configurar si usas registry privado
+      # imagePullSecrets:
+      # - name: regcred
+      
+      containers:
+      - name: {{APP_NAME}}
+        image: {{IMAGE}}:{{TAG}}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: {{PORT}}
+          protocol: TCP
+        
+        # Variables de entorno
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "{{PORT}}"
+        # Usar ConfigMap
+        # envFrom:
+        # - configMapRef:
+        #     name: {{APP_NAME}}-config
+        # Usar Secrets
+        # - secretRef:
+        #     name: {{APP_NAME}}-secrets
+        
+        # Recursos
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        # Startup probe para aplicaciones lentas
+        # startupProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: http
+        #   failureThreshold: 30
+        #   periodSeconds: 10
+        
+        # Montar volumenes (opcional)
+        # volumeMounts:
+        # - name: data
+        #   mountPath: /app/data
+        # - name: config
+        #   mountPath: /app/config
+        #   readOnly: true
+      
+      # Volumenes (opcional)
+      # volumes:
+      # - name: data
+      #   persistentVolumeClaim:
+      #     claimName: {{APP_NAME}}-pvc
+      # - name: config
+      #   configMap:
+      #     name: {{APP_NAME}}-config
+      
+      # Configuracion de scheduling
+      # nodeSelector:
+      #   kubernetes.io/os: linux
+      
+      # Tolerations para nodos especiales
+      # tolerations:
+      # - key: "node-role.kubernetes.io/master"
+      #   operator: "Exists"
+      #   effect: "NoSchedule"
+      
+      # Termination grace period
+      terminationGracePeriodSeconds: 30

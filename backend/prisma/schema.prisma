@@ -1,0 +1,560 @@
+// prisma/schema.prisma
+// Jaarvi Database Schema - 32 Models
+// Single Source of Truth for database structure
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// Authentication & Identity (7 models)
+// ==========================================
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  displayName     String
+  emailVerifiedAt DateTime?
+  status          String    @default("active") // active, disabled
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  credential              UserCredential?
+  sessions                Session[]
+  refreshTokens           RefreshToken[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  oauthAccounts           OAuthAccount[]
+  preferenceSets          PreferenceSet[]
+  trips                   Trip[]
+
+  @@map("users")
+}
+
+model UserCredential {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  passwordHash      String
+  passwordAlgo      String   @default("argon2id")
+  passwordUpdatedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_credentials")
+}
+
+model Session {
+  id         String    @id @default(uuid())
+  userId     String
+  deviceName String?
+  userAgent  String?
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime?
+  revokedAt  DateTime?
+  expiresAt  DateTime
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens RefreshToken[]
+
+  @@index([userId, expiresAt(sort: Desc)])
+  @@map("sessions")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  sessionId String
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  rotatedAt DateTime?
+  revokedAt DateTime?
+  expiresAt DateTime
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, expiresAt(sort: Desc)])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("email_verification_tokens")
+}
+
+model OAuthAccount {
+  id                    String    @id @default(uuid())
+  userId                String
+  provider              String // google, apple
+  providerAccountId     String
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  tokenExpiresAt        DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId, provider])
+  @@map("oauth_accounts")
+}
+
+// ==========================================
+// User Preferences (1 model)
+// ==========================================
+
+model PreferenceSet {
+  id              String   @id @default(uuid())
+  userId          String
+  name            String
+  preferencesJson Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("preference_sets")
+}
+
+// ==========================================
+// Geography (3 models)
+// ==========================================
+
+model Country {
+  id        String   @id @default(uuid())
+  isoCode   String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cities City[]
+
+  @@map("countries")
+}
+
+model City {
+  id        String   @id @default(uuid())
+  countryId String
+  name      String
+  timezone  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  country          Country           @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  coverage         CityCoverage?
+  tripDestinations TripDestination[]
+  dayPlans         DayPlan[]
+  localAdvicePacks LocalAdvicePack[]
+
+  @@unique([countryId, name])
+  @@map("cities")
+}
+
+model CityCoverage {
+  id        String   @id @default(uuid())
+  cityId    String   @unique
+  level     String // high, medium, low
+  notes     String?
+  updatedAt DateTime @updatedAt
+
+  city City @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  @@map("city_coverages")
+}
+
+// ==========================================
+// Trip Management (3 models)
+// ==========================================
+
+model Trip {
+  id        String   @id @default(uuid())
+  ownerId   String
+  name      String?
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("draft") // draft, active, completed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner             User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  destinations      TripDestination[]
+  planningContexts  TripPlanningContext[]
+  itineraryVersions ItineraryVersion[]
+  documents         Document[]
+  documentLinks     DocumentLink[]
+  recommendations   Recommendation[]
+
+  @@index([ownerId, status])
+  @@index([ownerId, startDate])
+  @@map("trips")
+}
+
+model TripDestination {
+  id        String   @id @default(uuid())
+  tripId    String
+  cityId    String
+  dayOrder  Int
+  daysCount Int
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  city City @relation(fields: [cityId], references: [id])
+
+  @@unique([tripId, dayOrder])
+  @@map("trip_destinations")
+}
+
+model TripPlanningContext {
+  id               String   @id @default(uuid())
+  tripId           String
+  version          Int
+  inputsSnapshot   Json
+  coverageSnapshot Json
+  createdAt        DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, version(sort: Desc)])
+  @@map("trip_planning_contexts")
+}
+
+// ==========================================
+// Itinerary (4 models)
+// ==========================================
+
+model ItineraryVersion {
+  id        String   @id @default(uuid())
+  tripId    String
+  version   Int
+  source    String // ai, manual, mixed
+  status    String   @default("draft") // draft, ready, archived
+  createdAt DateTime @default(now())
+
+  trip       Trip                 @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  generation ItineraryGeneration?
+  dayPlans   DayPlan[]
+
+  @@unique([tripId, version])
+  @@map("itinerary_versions")
+}
+
+model ItineraryGeneration {
+  id                   String   @id @default(uuid())
+  itineraryVersionId   String   @unique
+  agentName            String
+  agentVersion         String
+  promptInputsSnapshot Json
+  contextInputsUsed    Json?
+  citations            Json?
+  rationale            Json?
+  confidence           Json?
+  createdAt            DateTime @default(now())
+
+  itineraryVersion ItineraryVersion @relation(fields: [itineraryVersionId], references: [id], onDelete: Cascade)
+
+  @@map("itinerary_generations")
+}
+
+model DayPlan {
+  id                 String    @id @default(uuid())
+  itineraryVersionId String
+  cityId             String
+  dayDate            DateTime
+  status             String    @default("pending") // pending, ready, in_progress, completed
+  refreshedAt        DateTime?
+
+  itineraryVersion ItineraryVersion @relation(fields: [itineraryVersionId], references: [id], onDelete: Cascade)
+  city             City             @relation(fields: [cityId], references: [id])
+  activities       Activity[]
+  dailyContexts    DailyContext[]
+  documentLinks    DocumentLink[]
+  recommendations  Recommendation[]
+
+  @@unique([itineraryVersionId, dayDate])
+  @@index([cityId, dayDate])
+  @@map("day_plans")
+}
+
+model DailyContext {
+  id                  String   @id @default(uuid())
+  dayPlanId           String
+  constraintsSnapshot Json
+  weatherSnapshot     Json?
+  createdAt           DateTime @default(now())
+
+  dayPlan DayPlan @relation(fields: [dayPlanId], references: [id], onDelete: Cascade)
+
+  @@index([dayPlanId, createdAt(sort: Desc)])
+  @@map("daily_contexts")
+}
+
+// ==========================================
+// Activities (3 models)
+// ==========================================
+
+model ActivityTypeConfig {
+  key              String   @id
+  displayName      String
+  isMandatoryDaily Boolean  @default(false)
+  requiresEvidence Boolean  @default(false)
+  allowNotNeeded   Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  activities Activity[]
+
+  @@map("activity_type_configs")
+}
+
+model Activity {
+  id              String    @id @default(uuid())
+  dayPlanId       String
+  activityTypeKey String
+  type            String // transfer, visit, meal, freeTime, booking, other
+  title           String
+  locationName    String?
+  costEstimate    Decimal?  @db.Decimal(10, 2)
+  startTime       DateTime?
+  endTime         DateTime?
+  sortOrder       Int
+  isMandatory     Boolean   @default(false)
+  readinessStatus String    @default("pending") // pending, planned, prepared, notNeeded
+  readinessNote   String?
+  preparedAt      DateTime?
+
+  dayPlan         DayPlan            @relation(fields: [dayPlanId], references: [id], onDelete: Cascade)
+  activityType    ActivityTypeConfig @relation(fields: [activityTypeKey], references: [key])
+  progress        ActivityProgress?
+  stepGuide       StepGuide?
+  reminders       Reminder[]
+  incidents       Incident[]
+  documentLinks   DocumentLink[]
+  recommendations Recommendation[]
+
+  @@unique([dayPlanId, sortOrder])
+  @@index([dayPlanId, startTime])
+  @@index([dayPlanId, isMandatory, readinessStatus])
+  @@map("activities")
+}
+
+model ActivityProgress {
+  id          String    @id @default(uuid())
+  activityId  String    @unique
+  status      String    @default("notStarted") // notStarted, inProgress, done, skipped
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@map("activity_progress")
+}
+
+// ==========================================
+// Execution (4 models)
+// ==========================================
+
+model StepGuide {
+  id         String   @id @default(uuid())
+  activityId String   @unique
+  source     String // ai, manual, playbook
+  createdAt  DateTime @default(now())
+
+  activity Activity        @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  steps    StepGuideStep[]
+
+  @@map("step_guides")
+}
+
+model StepGuideStep {
+  id          String  @id @default(uuid())
+  stepGuideId String
+  stepOrder   Int
+  title       String
+  description String?
+
+  stepGuide StepGuide @relation(fields: [stepGuideId], references: [id], onDelete: Cascade)
+
+  @@unique([stepGuideId, stepOrder])
+  @@map("step_guide_steps")
+}
+
+model Reminder {
+  id          String   @id @default(uuid())
+  activityId  String
+  type        String // leaveTime, closingTime, transfer, custom
+  scheduledAt DateTime
+  status      String   @default("scheduled") // scheduled, sent, cancelled, failed
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@index([activityId, scheduledAt])
+  @@index([scheduledAt, status])
+  @@map("reminders")
+}
+
+model Incident {
+  id         String   @id @default(uuid())
+  activityId String
+  type       String
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@map("incidents")
+}
+
+// ==========================================
+// Documents (2 models)
+// ==========================================
+
+model Document {
+  id              String   @id @default(uuid())
+  tripId          String
+  type            String // ticket, permit, reservation, insurance, other
+  title           String
+  storageProvider String // s3, gcs
+  storageKey      String
+  checksum        String?
+  metadataJson    Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  trip  Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  links DocumentLink[]
+
+  @@index([tripId, createdAt(sort: Desc)])
+  @@map("documents")
+}
+
+model DocumentLink {
+  id         String   @id @default(uuid())
+  documentId String
+  tripId     String
+  dayPlanId  String?
+  activityId String?
+  createdAt  DateTime @default(now())
+
+  document Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  trip     Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  dayPlan  DayPlan?  @relation(fields: [dayPlanId], references: [id], onDelete: SetNull)
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+
+  @@index([tripId, dayPlanId, activityId])
+  @@map("document_links")
+}
+
+// ==========================================
+// Playbooks (3 models)
+// ==========================================
+
+model PlaybookPack {
+  id           String   @id @default(uuid())
+  name         String
+  version      Int
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  entries          PlaybookEntry[]
+  localAdvicePacks LocalAdvicePack[]
+
+  @@map("playbook_packs")
+}
+
+model PlaybookEntry {
+  id             String @id @default(uuid())
+  playbookPackId String
+  key            String
+  contentJson    Json
+
+  playbookPack PlaybookPack @relation(fields: [playbookPackId], references: [id], onDelete: Cascade)
+
+  @@unique([playbookPackId, key])
+  @@map("playbook_entries")
+}
+
+model LocalAdvicePack {
+  id             String    @id @default(uuid())
+  cityId         String
+  playbookPackId String
+  status         String    @default("draft") // draft, published, archived
+  publishedAt    DateTime?
+
+  city         City         @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  playbookPack PlaybookPack @relation(fields: [playbookPackId], references: [id], onDelete: Cascade)
+
+  @@index([cityId, status])
+  @@index([cityId, publishedAt(sort: Desc)])
+  @@map("local_advice_packs")
+}
+
+// ==========================================
+// Affiliates (2 models)
+// ==========================================
+
+model Recommendation {
+  id             String   @id @default(uuid())
+  tripId         String
+  dayPlanId      String?
+  activityId     String?
+  category       String
+  title          String
+  destinationUrl String
+  displayReason  Json?
+  createdAt      DateTime @default(now())
+
+  trip     Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  dayPlan  DayPlan?         @relation(fields: [dayPlanId], references: [id], onDelete: SetNull)
+  activity Activity?        @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  clicks   AffiliateClick[]
+
+  @@index([tripId, createdAt(sort: Desc)])
+  @@map("recommendations")
+}
+
+model AffiliateClick {
+  id               String   @id @default(uuid())
+  recommendationId String
+  clickedAt        DateTime @default(now())
+  userAgent        String?
+  referrer         String?
+
+  recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+
+  @@index([recommendationId, clickedAt(sort: Desc)])
+  @@map("affiliate_clicks")
+}

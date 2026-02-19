@@ -838,6 +838,70 @@ Arquitectura propuesta: **Kotlin Multiplatform (KMP) + Compose Multiplatform (CM
 
 Esto permite un **time-to-market** rápido para Android+iOS (una sola base de UI y lógica) y reduce duplicación, manteniendo flexibilidad para integrar capacidades nativas cuando sea necesario.
 
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       Mobile Apps                           │
+├──────────────────┬──────────────────────────────────────────┤
+│   androidApp/    │              iosApp/                     │
+│  ┌────────────┐  │           ┌────────────┐                 │
+│  │MainActivity│  │           │JaarviApp   │                 │
+│  │(Compose)   │  │           │(SwiftUI)   │                 │
+│  └─────┬──────┘  │           └─────┬──────┘                 │
+│        │         │                 │                        │
+│  ┌─────▼──────┐  │           ┌─────▼──────┐                 │
+│  │Android     │  │           │iOS         │                 │
+│  │Capabilities│  │           │Capabilities│                 │
+│  │(Maps,etc)  │  │           │(Swift)     │                 │
+│  └────────────┘  │           └────────────┘                 │
+└──────────────────┴──────────────────────────────────────────┘
+                           │
+                ┌──────────▼───────────┐
+                │   shared-ui/         │ (CMP)
+                │ ┌──────────────────┐ │
+                │ │ Screens          │ │
+                │ │ HealthScreen     │ │
+                │ │ SplashScreen     │ │
+                │ └────────┬─────────┘ │
+                │          │           │
+                │ ┌────────▼─────────┐ │
+                │ │ Presenters       │ │
+                │ │ (StateFlow)      │ │
+                │ └────────┬─────────┘ │
+                │          │           │
+                │ ┌────────▼─────────┐ │
+                │ │ Theme/Components │ │
+                │ │ JaarviTheme      │ │
+                │ └──────────────────┘ │
+                └──────────┬───────────┘
+                           │
+                ┌──────────▼───────────┐
+                │   shared/            │ (KMP)
+                │ ┌──────────────────┐ │
+                │ │ Domain           │ │
+                │ │ Models/UseCases  │ │
+                │ └────────┬─────────┘ │
+                │          │           │
+                │ ┌────────▼─────────┐ │
+                │ │ Data             │ │
+                │ │ Repositories     │ │
+                │ └────────┬─────────┘ │
+                │          │           │
+                │ ┌────────▼─────────┐ │
+                │ │ Network (Ktor)   │ │
+                │ │ expect/actual    │ │
+                │ └────────┬─────────┘ │
+                │          │           │
+                │ ┌────────▼─────────┐ │
+                │ │ Capabilities     │ │
+                │ │ (Interfaces)     │ │
+                │ └──────────────────┘ │
+                └──────────┬───────────┘
+                           │
+                    ┌──────▼────────┐
+                    │ Backend API   │
+                    │ /api/health   │
+                    └───────────────┘
+
 #### **2.1.1 Mobile Apps Architecture**
 ```mermaid
 flowchart TB

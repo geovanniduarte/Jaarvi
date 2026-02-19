@@ -27,19 +27,19 @@
 
 ### Description
 
-This task sets up the complete database infrastructure for the Jaarvi backend, including:
+This task creates the database schema files and seed scripts for the Jaarvi backend, including:
 
-- Docker configuration for local PostgreSQL
-- Prisma schema with all 27 models from the database specification
-- Initial migration to create all tables
-- Seed data for development and testing (activity types, destinations, test users, sample trips)
-- Database connection verification
+- Prisma schema with all 32 models from the database specification
+- Migration files to create all tables
+- Seed data scripts for development and testing (activity types, destinations, test users, sample trips)
+
+**Note**: Database server deployment (PostgreSQL) will be configured separately on a local network server.
 
 ### Prerequisites
 
 - `backend-scaffolding.md` must be completed
 - Node.js and npm installed
-- Docker installed and running
+- Access to a PostgreSQL database (connection string configured in `.env`)
 
 ---
 
@@ -49,24 +49,17 @@ This task sets up the complete database infrastructure for the Jaarvi backend, i
 |-----------|------------|---------|
 | **Database** | PostgreSQL | 15.x |
 | **ORM** | Prisma | 5.x |
-| **Container** | Docker Compose | 3.8+ |
 | **Password Hashing** | argon2 | 0.31.x |
 
 ---
 
 ## Files to Create
 
-### Docker Configuration (1 file)
-
-| File | Purpose |
-|------|---------|
-| `backend/docker-compose.yml` | PostgreSQL container for local development |
-
 ### Prisma Files (6 files)
 
 | File | Purpose |
 |------|---------|
-| `backend/prisma/schema.prisma` | Complete database schema with 27 models |
+| `backend/prisma/schema.prisma` | Complete database schema with 32 models |
 | `backend/prisma/seed.ts` | Main seed orchestrator |
 | `backend/prisma/seeds/activityTypes.ts` | Activity type configuration seeds |
 | `backend/prisma/seeds/destinations.ts` | Countries and cities with coverage seeds |
@@ -81,46 +74,22 @@ This task sets up the complete database infrastructure for the Jaarvi backend, i
 
 ---
 
-## Docker Configuration
+## Database Connection
 
-### `docker-compose.yml`
-
-```yaml
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: jaarvi-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: jaarvi_dev
-      POSTGRES_PASSWORD: jaarvi_local_dev_2024
-      POSTGRES_DB: jaarvi_dev
-    ports:
-      - "5432:5432"
-    volumes:
-      - jaarvi_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jaarvi_dev -d jaarvi_dev"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  jaarvi_postgres_data:
-    driver: local
-```
-
-### Database Connection String
+The `DATABASE_URL` environment variable must be configured in `.env` to point to your PostgreSQL server:
 
 ```
-DATABASE_URL="postgresql://jaarvi_dev:jaarvi_local_dev_2024@localhost:5432/jaarvi_dev"
+DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/<database>"
+```
+
+**Example** (for a server on local network):
+```
+DATABASE_URL="postgresql://jaarvi_dev:jaarvi_local_dev_2024@192.168.1.100:5432/jaarvi_dev"
 ```
 
 ---
 
-## Prisma Schema Models (27 models)
+## Prisma Schema Models (32 models)
 
 Complete list of models to implement in `schema.prisma`:
 
@@ -1221,9 +1190,6 @@ export async function seedSampleTrips(prisma: PrismaClient): Promise<void> {
 ```json
 {
   "scripts": {
-    "db:start": "docker-compose up -d",
-    "db:stop": "docker-compose down",
-    "db:reset": "docker-compose down -v && docker-compose up -d",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:create": "prisma migrate dev --create-only",
@@ -1243,53 +1209,47 @@ export async function seedSampleTrips(prisma: PrismaClient): Promise<void> {
 
 ## Acceptance Criteria
 
-### AC1: Docker & PostgreSQL
-- [ ] `docker-compose.yml` is created with PostgreSQL 15 configuration
-- [ ] `docker-compose up -d` starts container successfully
-- [ ] Database is accessible at `localhost:5432`
-- [ ] Health check passes: `pg_isready -U jaarvi_dev -d jaarvi_dev`
-
-### AC2: Prisma Schema
-- [ ] `schema.prisma` contains all 27 models
+### AC1: Prisma Schema
+- [ ] `schema.prisma` contains all 32 models
 - [ ] All relations are correctly defined
 - [ ] All indexes are defined for hot queries
 - [ ] `npx prisma validate` passes
 - [ ] `npx prisma format` shows no changes needed
 
-### AC3: Migration
+### AC2: Migration
 - [ ] `npx prisma migrate dev --name init` creates initial migration
 - [ ] Migration SQL file is generated in `prisma/migrations/`
 - [ ] All tables are created with correct columns and constraints
 - [ ] `npx prisma generate` creates client successfully
 
-### AC4: Seed - Activity Types
+### AC3: Seed - Activity Types
 - [ ] 5 activity types are seeded
 - [ ] `sleep` is marked as mandatory daily
 - [ ] All types have correct `allowNotNeeded` values
 - [ ] Seed is idempotent (running twice doesn't create duplicates)
 
-### AC5: Seed - Destinations
+### AC4: Seed - Destinations
 - [ ] 6 countries are seeded
 - [ ] 13 cities are seeded with correct country relations
 - [ ] 13 city coverage records are created
 - [ ] Timezones are correctly set
 - [ ] Seed is idempotent
 
-### AC6: Seed - Test Users (Development)
+### AC5: Seed - Test Users (Development)
 - [ ] 3 test users are created (only in NODE_ENV=development)
 - [ ] Passwords are hashed with argon2id
 - [ ] Users have `emailVerifiedAt` set
 - [ ] UserCredential records are created
 - [ ] Seed is idempotent
 
-### AC7: Seed - Sample Trips (Development)
+### AC6: Seed - Sample Trips (Development)
 - [ ] 2 sample trips are created
 - [ ] Trips are linked to correct owners
 - [ ] Trip destinations are created with correct city relations
 - [ ] Day orders and counts are correct
 - [ ] Seed is idempotent
 
-### AC8: Verification
+### AC7: Verification
 - [ ] `npx prisma studio` opens and shows all tables
 - [ ] All seed data is visible in Prisma Studio
 - [ ] Queries work: `SELECT * FROM users`, etc.
@@ -1298,36 +1258,30 @@ export async function seedSampleTrips(prisma: PrismaClient): Promise<void> {
 
 ## Implementation Steps
 
-### Phase 1: Docker Setup
-1. Create `docker-compose.yml`
-2. Run `docker-compose up -d`
-3. Verify: `docker-compose ps` shows healthy container
-4. Verify: `psql -h localhost -U jaarvi_dev -d jaarvi_dev` connects
-
-### Phase 2: Prisma Schema
-1. Create `prisma/schema.prisma` with all 27 models
+### Phase 1: Prisma Schema
+1. Create `prisma/schema.prisma` with all 32 models
 2. Run `npx prisma validate`
 3. Run `npx prisma format`
 4. Run `npx prisma generate`
 
-### Phase 3: Initial Migration
-1. Run `npx prisma migrate dev --name init`
+### Phase 2: Initial Migration
+1. Run `npx prisma migrate dev --name init` (requires DATABASE_URL configured)
 2. Review generated SQL in `prisma/migrations/`
 3. Verify all tables exist in database
 
-### Phase 4: Seed Scripts
+### Phase 3: Seed Scripts
 1. Create `prisma/seeds/activityTypes.ts`
 2. Create `prisma/seeds/destinations.ts`
 3. Create `prisma/seeds/users.ts`
 4. Create `prisma/seeds/sampleTrips.ts`
 5. Create `prisma/seed.ts` orchestrator
 
-### Phase 5: Run Seeds
+### Phase 4: Run Seeds (when database is available)
 1. Set `NODE_ENV=development`
 2. Run `npm run seed`
 3. Verify with `npx prisma studio`
 
-### Phase 6: Verification
+### Phase 5: Verification
 1. Open Prisma Studio
 2. Verify all tables have data
 3. Test foreign key relations
@@ -1377,8 +1331,7 @@ ORDER BY t.name, td."dayOrder";
 
 ## Definition of Done
 
-- [ ] Docker PostgreSQL container runs successfully
-- [ ] Prisma schema has all 27 models with correct relations
+- [ ] Prisma schema has all 32 models with correct relations
 - [ ] Initial migration creates all tables
 - [ ] All seed scripts execute without errors
 - [ ] ActivityTypeConfig has 5 records
@@ -1399,8 +1352,8 @@ ORDER BY t.name, td."dayOrder";
 
 | Issue | Solution |
 |-------|----------|
-| Docker port 5432 in use | Stop other PostgreSQL services or change port in docker-compose.yml |
-| Prisma migration fails | Check DATABASE_URL, ensure container is running |
+| Prisma migration fails | Check DATABASE_URL, ensure PostgreSQL server is accessible |
+| Connection refused | Verify PostgreSQL server is running and network accessible |
 | argon2 install fails | Install build tools: `npm install -g node-gyp` |
 | Seed duplicate key error | Use `upsert` instead of `create`, or clean database first |
 | Foreign key constraint error | Ensure parent records exist before creating child records |

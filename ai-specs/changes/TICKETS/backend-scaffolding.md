@@ -28,7 +28,6 @@ You are building the backend scaffolding for **Jaarvi**, a travel planning assis
 - **Stack**: Node.js + TypeScript + Express.js + Prisma ORM + PostgreSQL
 - **Architecture**: Layered DDD (Presentation → Application → Domain → Infrastructure)
 - **Testing**: Jest with 90% coverage threshold
-- **Deployment**: Serverless Framework (AWS Lambda compatible)
 - **Code Quality**: ESLint, strict TypeScript mode
 
 ### Objective
@@ -50,7 +49,7 @@ Create the complete scaffolding for the backend application `backend`.
 This task creates the foundational backend infrastructure for the Jaarvi travel planning application. The scaffolding includes:
 
 - Complete project structure following layered DDD architecture
-- All configuration files (TypeScript, Jest, ESLint, Serverless)
+- All configuration files (TypeScript, Jest, ESLint, Prettier)
 - Express application with middleware stack
 - Health check endpoint to verify the setup
 - Prisma client singleton (schema created in separate ticket)
@@ -72,7 +71,7 @@ This task creates the foundational backend infrastructure for the Jaarvi travel 
 
 ```http
 GET /api/health HTTP/1.1
-Host: localhost:3000
+Host: ${SERVER_HOST}:3000
 ```
 
 #### Response (200 OK)
@@ -133,8 +132,7 @@ backend/
 │   │   ├── requestLogger.ts
 │   │   ├── corsMiddleware.ts
 │   │   └── prismaMiddleware.ts
-│   ├── index.ts
-│   └── lambda.ts
+│   └── index.ts
 ├── prisma/
 │   └── .gitkeep              # Placeholder for schema (created in database-init)
 ├── test-utils/
@@ -158,7 +156,6 @@ backend/
 ├── jest.config.js
 ├── .eslintrc.js
 ├── .prettierrc
-├── serverless.yml
 ├── .env.example
 ├── .gitignore
 └── README.md
@@ -177,19 +174,17 @@ backend/
 | `jest.config.js` | Jest testing configuration |
 | `.eslintrc.js` | ESLint rules and configuration |
 | `.prettierrc` | Code formatting rules |
-| `serverless.yml` | AWS Lambda deployment config |
 | `.env.example` | Environment variables template |
 | `.gitignore` | Git ignore patterns |
 | `README.md` | Project documentation |
 
 ### Source Code (`backend/src/`)
 
-#### Entry Points (2 files)
+#### Entry Points (1 file)
 
 | File | Purpose |
 |------|---------|
 | `src/index.ts` | Express application entry point |
-| `src/lambda.ts` | AWS Lambda handler wrapper |
 
 #### Infrastructure Layer (4 files)
 
@@ -253,7 +248,7 @@ backend/
 | `__tests__/application/services/healthService.test.ts` | Health service tests |
 | `__tests__/infrastructure/env.test.ts` | Environment validation tests |
 
-### Total Files: 28 files
+### Total Files: 26 files
 
 ---
 
@@ -265,13 +260,20 @@ backend/
 # ========================================
 # Database Configuration
 # ========================================
-DATABASE_URL="postgresql://jaarvi_dev:jaarvi_local_dev_2024@localhost:5432/jaarvi_dev"
+# Note: Replace DB_HOST with your database server IP/hostname
+DB_HOST=your-database-host
+DB_PORT=5432
+DB_NAME=jaarvi_dev
+DB_USER=jaarvi_dev
+DB_PASSWORD=jaarvi_local_dev_2024
+DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
 
 # ========================================
 # Server Configuration
 # ========================================
 NODE_ENV=development
 PORT=3000
+SERVER_HOST=0.0.0.0
 
 # ========================================
 # Authentication Configuration
@@ -281,10 +283,14 @@ JWT_ACCESS_EXPIRATION=15m
 JWT_REFRESH_EXPIRATION=7d
 
 # ========================================
-# CORS Configuration
+# CORS Configuration (Mobile App)
 # ========================================
-FRONTEND_URL=http://localhost:3001
-ALLOWED_ORIGINS=http://localhost:3001,http://localhost:19006
+# For React Native/Expo mobile apps, CORS is typically not needed since
+# mobile apps don't run in a browser. However, we keep these for:
+# - Expo development server (exp://, http://localhost:19006)
+# - Future web client support
+# - API testing tools
+ALLOWED_ORIGINS=exp://localhost:19000,http://localhost:19006
 
 # ========================================
 # Logging Configuration
@@ -330,8 +336,7 @@ LOG_LEVEL=debug
   "winston": "^3.11.0",
   "argon2": "^0.31.x",
   "jsonwebtoken": "^9.x",
-  "dotenv": "^16.x",
-  "serverless-http": "^3.x"
+  "dotenv": "^16.x"
 }
 ```
 
@@ -364,7 +369,7 @@ LOG_LEVEL=debug
 ### AC1: Project Structure
 - [ ] Project folder `backend/` is created at workspace root
 - [ ] All directories follow the layered architecture pattern
-- [ ] All 28 files are created
+- [ ] All 26 files are created
 
 ### AC2: TypeScript Configuration
 - [ ] `tsconfig.json` uses strict mode
@@ -373,7 +378,7 @@ LOG_LEVEL=debug
 - [ ] `npm run build` compiles without errors
 
 ### AC3: Express Application
-- [ ] Server starts on configured PORT: `npm run dev`
+- [ ] Server binds to configured SERVER_HOST and PORT: `npm run dev`
 - [ ] CORS is configured for allowed origins
 - [ ] Helmet middleware is active for security headers
 - [ ] Request logging middleware logs all requests
@@ -397,10 +402,6 @@ LOG_LEVEL=debug
 - [ ] Health service tests pass
 - [ ] Environment validation tests pass
 - [ ] Coverage threshold is set to 90%
-
-### AC7: Lambda Support
-- [ ] `lambda.ts` wraps Express app with serverless-http
-- [ ] `serverless.yml` is configured for AWS Lambda deployment
 
 ---
 
@@ -438,11 +439,17 @@ describe('HealthService', () => {
 describe('Environment Validation', () => {
   describe('validateEnvironment', () => {
     it('should pass with all required variables');
-    it('should throw error when DATABASE_URL is missing');
+    it('should throw error when DB_HOST is missing');
+    it('should throw error when DB_USER is missing');
+    it('should throw error when DB_PASSWORD is missing');
     it('should throw error when JWT_SECRET is missing');
     it('should throw error when JWT_SECRET is too short');
     it('should validate NODE_ENV values');
     it('should use default PORT if not provided');
+    it('should use default SERVER_HOST (0.0.0.0) if not provided');
+    it('should use default DB_PORT (5432) if not provided');
+    it('should use default DB_NAME (jaarvi_dev) if not provided');
+    it('should construct DATABASE_URL from DB_* variables');
   });
 });
 ```
@@ -519,9 +526,8 @@ describe('Environment Validation', () => {
 1. Create `src/routes/healthRoutes.ts`
 2. Create `src/routes/index.ts`
 
-### Phase 8: Entry Points
+### Phase 8: Entry Point
 1. Create `src/index.ts` with Express app
-2. Create `src/lambda.ts` for serverless
 
 ### Phase 9: Test Utilities
 1. Create `test-utils/mocks/prisma.ts`
@@ -533,10 +539,9 @@ describe('Environment Validation', () => {
 2. Create `__tests__/application/services/healthService.test.ts`
 3. Create `__tests__/presentation/controllers/healthController.test.ts`
 
-### Phase 11: Deployment Config
-1. Create `serverless.yml`
-2. Create `.env.example`
-3. Create `README.md`
+### Phase 11: Documentation & Config
+1. Create `.env.example`
+2. Create `README.md`
 
 ### Phase 12: Verification
 1. Run `npm run lint`
@@ -548,7 +553,7 @@ describe('Environment Validation', () => {
 
 ## Definition of Done
 
-- [ ] All 28 files are created
+- [ ] All 26 files are created
 - [ ] `npm install` completes without errors
 - [ ] `npm run build` compiles without errors
 - [ ] `npm run lint` passes with zero errors
