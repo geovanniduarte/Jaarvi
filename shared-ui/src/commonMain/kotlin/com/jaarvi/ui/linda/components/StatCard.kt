@@ -79,22 +79,3 @@ fun LindaStatsRow(
     )
 }
 
-// ─── Backward-compat aliases ─────────────────────────────────
-
-/** @deprecated Use [LindaStatCard]. */
-@Deprecated("Use LindaStatCard", ReplaceWith("LindaStatCard(label, value, modifier, subtext)"))
-@Composable
-fun TravelStatCard(
-    label   : String,
-    value   : String,
-    modifier: Modifier = Modifier,
-    subtext : String?  = null,
-) = LindaStatCard(label, value, modifier, subtext)
-
-/** @deprecated Use [LindaStatsRow]. */
-@Deprecated("Use LindaStatsRow", ReplaceWith("LindaStatsRow(modifier, content)"))
-@Composable
-fun TravelStatsRow(
-    modifier: Modifier = Modifier,
-    content : @Composable RowScope.() -> Unit,
-) = LindaStatsRow(modifier, content)

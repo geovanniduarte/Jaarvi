@@ -143,24 +143,3 @@ fun LindaAvatarGroup(
     }
 }
 
-// ─── Backward-compat aliases ─────────────────────────────────
-
-/** @deprecated Use [LindaAvatar]. */
-@Deprecated("Use LindaAvatar", ReplaceWith("LindaAvatar(imageUrl, modifier, size, contentDescription)"))
-@Composable
-fun TravelAvatar(
-    imageUrl          : String,
-    modifier          : Modifier   = Modifier,
-    size              : AvatarSize = AvatarSize.MD,
-    contentDescription: String?    = null,
-) = LindaAvatar(imageUrl, modifier, size, contentDescription)
-
-/** @deprecated Use [LindaAvatarGroup]. */
-@Deprecated("Use LindaAvatarGroup", ReplaceWith("LindaAvatarGroup(imageUrls, modifier, max, size)"))
-@Composable
-fun TravelAvatarGroup(
-    imageUrls: List<String>,
-    modifier : Modifier   = Modifier,
-    max      : Int        = 3,
-    size     : AvatarSize = AvatarSize.MD,
-) = LindaAvatarGroup(imageUrls, modifier, max, size)

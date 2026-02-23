@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.jaarvi.ui.components.loading.LoadingIndicator
+import androidx.compose.material.CircularProgressIndicator
 import com.jaarvi.ui.screens.health.HealthScreen
 import com.jaarvi.ui.theme.JaarviTheme
 import com.jaarvi.ui.theme.Spacing
@@ -58,7 +58,7 @@ class SplashScreen : Screen {
                     
                     Spacer(modifier = Modifier.height(Spacing.xl))
                     
-                    LoadingIndicator()
+                    CircularProgressIndicator(color = MaterialTheme.colors.primary)
                 }
             }
         }

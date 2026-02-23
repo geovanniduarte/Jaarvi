@@ -103,14 +103,3 @@ fun LindaIconButton(
     }
 }
 
-// ─── Backward-compat alias ───────────────────────────────────
-/** @deprecated Use [LindaIconButton]. */
-@Deprecated("Use LindaIconButton", ReplaceWith("LindaIconButton(onClick, modifier, variant, size, content)"))
-@Composable
-fun TravelIconButton(
-    onClick : () -> Unit,
-    modifier: Modifier          = Modifier,
-    variant : IconButtonVariant = IconButtonVariant.GHOST,
-    size    : IconButtonSize    = IconButtonSize.MD,
-    content : @Composable () -> Unit,
-) = LindaIconButton(onClick, modifier, variant, size, content)

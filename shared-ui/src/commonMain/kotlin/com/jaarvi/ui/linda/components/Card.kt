@@ -67,12 +67,3 @@ fun LindaCard(
     }
 }
 
-// ─── Backward-compat alias ───────────────────────────────────
-/** @deprecated Use [LindaCard]. */
-@Deprecated("Use LindaCard", ReplaceWith("LindaCard(modifier, variant, content)"))
-@Composable
-fun TravelCard(
-    modifier: Modifier    = Modifier,
-    variant : CardVariant = CardVariant.GLASS,
-    content : @Composable () -> Unit,
-) = LindaCard(modifier, variant, content)

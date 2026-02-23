@@ -157,16 +157,3 @@ fun LindaProgressBar(
     }
 }
 
-// ─── Backward-compat alias ───────────────────────────────────
-/** @deprecated Use [LindaProgressBar]. */
-@Deprecated("Use LindaProgressBar", ReplaceWith("LindaProgressBar(value, modifier, max, variant, showLabel, label, size)"))
-@Composable
-fun TravelProgressBar(
-    value    : Float,
-    modifier : Modifier        = Modifier,
-    max      : Float           = 100f,
-    variant  : ProgressVariant = ProgressVariant.GRADIENT,
-    showLabel: Boolean         = true,
-    label    : String          = "",
-    size     : ProgressSize    = ProgressSize.MD,
-) = LindaProgressBar(value, modifier, max, variant, showLabel, label, size)

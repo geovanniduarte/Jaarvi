@@ -124,12 +124,3 @@ private val defaultNavItems = listOf(
     NavItem(Icons.Default.Person,     "Profile", false),
 )
 
-// ─── Backward-compat alias ───────────────────────────────────
-/** @deprecated Use [LindaNavBar]. */
-@Deprecated("Use LindaNavBar", ReplaceWith("LindaNavBar(modifier, items, onNavItemClick, onFabClick)"))
-@Composable
-fun TravelNavBar(
-    modifier      : Modifier      = Modifier,
-    onNavItemClick: (Int) -> Unit = {},
-    onFabClick    : () -> Unit    = {},
-) = LindaNavBar(modifier = modifier, onNavItemClick = onNavItemClick, onFabClick = onFabClick)

@@ -72,13 +72,3 @@ fun LindaBadge(
     )
 }
 
-// ─── Backward-compat alias ───────────────────────────────────
-/** @deprecated Use [LindaBadge]. */
-@Deprecated("Use LindaBadge", ReplaceWith("LindaBadge(text, modifier, variant, glow)"))
-@Composable
-fun TravelBadge(
-    text    : String,
-    modifier: Modifier     = Modifier,
-    variant : BadgeVariant = BadgeVariant.GOLD,
-    glow    : Boolean      = true,
-) = LindaBadge(text, modifier, variant, glow)

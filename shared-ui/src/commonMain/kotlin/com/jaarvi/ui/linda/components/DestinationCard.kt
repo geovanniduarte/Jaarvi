@@ -216,16 +216,3 @@ fun LindaDestinationCard(
     }
 }
 
-// ─── Backward-compat alias ───────────────────────────────────
-/** @deprecated Use [LindaDestinationCard]. */
-@Deprecated("Use LindaDestinationCard")
-@Composable
-fun TravelDestinationCard(
-    imageUrl     : String,
-    title        : String,
-    duration     : String,
-    theme        : String,
-    modifier     : Modifier          = Modifier,
-    status       : DestinationStatus = DestinationStatus.ACTIVE,
-    bottomContent: @Composable (() -> Unit)? = null,
-) = LindaDestinationCard(imageUrl, title, duration, theme, modifier, status, bottomContent)

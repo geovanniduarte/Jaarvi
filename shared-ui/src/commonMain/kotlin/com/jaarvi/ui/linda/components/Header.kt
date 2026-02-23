@@ -116,14 +116,3 @@ fun LindaHeader(
     }
 }
 
-// ─── Backward-compat alias ───────────────────────────────────
-/** @deprecated Use [LindaHeader]. */
-@Deprecated("Use LindaHeader", ReplaceWith("LindaHeader(title, modifier, subtitle, onBackClick, onShareClick)"))
-@Composable
-fun TravelHeader(
-    title       : String,
-    modifier    : Modifier       = Modifier,
-    subtitle    : String?        = null,
-    onBackClick : (() -> Unit)?  = null,
-    onShareClick: (() -> Unit)?  = null,
-) = LindaHeader(title, modifier, subtitle, onBackClick, onShareClick)
