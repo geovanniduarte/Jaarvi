@@ -41,7 +41,7 @@ class SplashScreen : Screen {
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(Spacing.large)
+                    verticalArrangement = Arrangement.spacedBy(Spacing.lg)
                 ) {
                     Text(
                         text = "Jaarvi",
@@ -56,7 +56,7 @@ class SplashScreen : Screen {
                         color = MaterialTheme.colors.onBackground
                     )
                     
-                    Spacer(modifier = Modifier.height(Spacing.extraLarge))
+                    Spacer(modifier = Modifier.height(Spacing.xl))
                     
                     LoadingIndicator()
                 }

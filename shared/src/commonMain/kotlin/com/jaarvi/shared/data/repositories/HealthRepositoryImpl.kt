@@ -1,6 +1,6 @@
 package com.jaarvi.shared.data.repositories
 
-import com.jaarvi.shared.data.datasources.RemoteDataSource
+import com.jaarvi.shared.data.datasources.HealthDataSource
 import com.jaarvi.shared.data.mappers.toDomain
 import com.jaarvi.shared.domain.models.HealthStatus
 import com.jaarvi.shared.domain.repositories.HealthRepository
@@ -13,7 +13,7 @@ import com.jaarvi.shared.domain.repositories.HealthRepository
  * @property remoteDataSource Remote data source for API calls
  */
 class HealthRepositoryImpl(
-    private val remoteDataSource: RemoteDataSource
+    private val remoteDataSource: HealthDataSource
 ) : HealthRepository {
     /**
      * Fetches the health status from the backend API.

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.android.library)
 }
@@ -13,14 +14,17 @@ kotlin {
         }
     }
     
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach {
-        it.binaries.framework {
-            baseName = "shared-ui"
-            isStatic = true
+    // iOS: enable with -Pjaarvi.includeIos=true (requires Xcode)
+    if (project.findProperty("jaarvi.includeIos") == "true") {
+        listOf(
+            iosX64(),
+            iosArm64(),
+            iosSimulatorArm64()
+        ).forEach {
+            it.binaries.framework {
+                baseName = "shared-ui"
+                isStatic = true
+            }
         }
     }
 
@@ -47,11 +51,19 @@ kotlin {
             
             // DateTime
             implementation(libs.kotlinx.datetime)
-            
+
+            // Coil: disabled in commonMain while project uses Kotlin 2.0.x (Coil is built with 2.2.0, causes metadata mismatch).
+            // Re-enable after upgrading to Kotlin 2.2.x, or add Coil only in androidMain via expect/actual.
+            // implementation(libs.coil.compose)
+
             // Shared module
             implementation(project(":shared"))
         }
         
+        androidMain.dependencies {
+            implementation(compose.uiTooling)
+        }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)

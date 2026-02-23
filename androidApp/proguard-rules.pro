@@ -21,6 +21,10 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
+# Ktor (java.lang.management not on Android)
+-dontwarn java.lang.management.ManagementFactory
+-dontwarn java.lang.management.RuntimeMXBean
+
 # Ktor
 -keep class io.ktor.** { *; }
 -keep class kotlinx.coroutines.** { *; }

@@ -1,8 +1,7 @@
 package com.jaarvi.shared.data.repositories
 
-import com.jaarvi.shared.data.datasources.RemoteDataSource
-import com.jaarvi.shared.data.mappers.toHealthStatus
-import com.jaarvi.shared.domain.models.HealthStatus
+import com.jaarvi.shared.data.datasources.HealthDataSource
+import com.jaarvi.shared.data.mappers.toDomain
 import com.jaarvi.shared.network.dto.HealthResponseDto
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -67,13 +66,13 @@ class HealthRepositoryTest {
 }
 
 /**
- * Mock implementation of RemoteDataSource for testing.
+ * Mock implementation of HealthDataSource for testing.
  */
 private class MockRemoteDataSource(
     private val successResponse: HealthResponseDto? = null,
     private val shouldFail: Boolean = false
-) {
-    suspend fun getHealth(): HealthResponseDto {
+) : HealthDataSource {
+    override suspend fun getHealth(): HealthResponseDto {
         if (shouldFail) {
             throw Exception("Network error")
         }

@@ -1,5 +1,6 @@
 package com.jaarvi.shared.di
 
+import com.jaarvi.shared.data.datasources.HealthDataSource
 import com.jaarvi.shared.data.datasources.RemoteDataSource
 import com.jaarvi.shared.data.repositories.HealthRepositoryImpl
 import com.jaarvi.shared.domain.repositories.HealthRepository
@@ -19,8 +20,8 @@ import org.koin.dsl.module
 val commonModule = module {
     // Network
     single { JaarviApiClient() }
-    single { RemoteDataSource(get()) }
-    
+    single<HealthDataSource> { RemoteDataSource(get()) }
+
     // Repositories
     single<HealthRepository> { HealthRepositoryImpl(get()) }
 }

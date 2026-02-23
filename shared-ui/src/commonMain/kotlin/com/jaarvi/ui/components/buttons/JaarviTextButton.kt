@@ -1,12 +1,12 @@
 package com.jaarvi.ui.components.buttons
 
+import com.jaarvi.ui.theme.Spacing
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.jaarvi.ui.theme.Spacing
 
 /**
  * Secondary text button for Jaarvi app.

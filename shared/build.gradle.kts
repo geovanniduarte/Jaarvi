@@ -13,14 +13,17 @@ kotlin {
         }
     }
     
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach {
-        it.binaries.framework {
-            baseName = "shared"
-            isStatic = true
+    // iOS: enable with -Pjaarvi.includeIos=true (requires Xcode)
+    if (project.findProperty("jaarvi.includeIos") == "true") {
+        listOf(
+            iosX64(),
+            iosArm64(),
+            iosSimulatorArm64()
+        ).forEach {
+            it.binaries.framework {
+                baseName = "shared"
+                isStatic = true
+            }
         }
     }
 
@@ -45,11 +48,13 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
-        
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+
+        if (project.findProperty("jaarvi.includeIos") == "true") {
+            iosMain.dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
-        
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)

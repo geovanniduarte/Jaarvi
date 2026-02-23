@@ -21,7 +21,11 @@ class HealthPresenter(
     private val _state = MutableStateFlow(HealthUiState())
     val state: StateFlow<HealthUiState> = _state.asStateFlow()
 
-    init {
+    /**
+     * Triggers the initial health check. Call once when the screen is shown
+     * (e.g. from a LaunchedEffect(Unit) in the Screen) so [screenModelScope] is ready.
+     */
+    fun start() {
         checkHealth()
     }
 
