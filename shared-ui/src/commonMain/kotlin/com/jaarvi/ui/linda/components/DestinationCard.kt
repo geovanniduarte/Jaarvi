@@ -23,7 +23,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import com.jaarvi.ui.linda.theme.LindaTheme
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.components.rememberImageComponent
+import com.skydoves.landscapist.crossfade.CrossfadePlugin
+import com.skydoves.landscapist.image.LandscapistImage
+import com.skydoves.landscapist.placeholder.shimmer.Shimmer
+import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 
 // ─────────────────────────────────────────────────────────────
 // DestinationStatus
@@ -81,10 +89,6 @@ fun LindaDestinationCard(
         DestinationStatus.COMPLETED -> colors.glowGold
         DestinationStatus.PLANNED   -> Color.Transparent
     }
-    val cardAlpha = when (status) {
-        DestinationStatus.PLANNED   -> 0.85f
-        else                        -> 1f
-    }
 
     val shape = RoundedCornerShape(borders.radiusLg)
 
@@ -98,7 +102,7 @@ fun LindaDestinationCard(
                 spotColor    = Color.Black.copy(alpha = shadow.cardShadowAlpha),
             )
             .clip(shape)
-            .background(colors.surfaceGlass.copy(alpha = cardAlpha))
+            .background(colors.surfaceGlass)
             .border(width = borders.widthThin, color = colors.borderGlass, shape = shape),
     ) {
         Column {
@@ -108,10 +112,29 @@ fun LindaDestinationCard(
                     .fillMaxWidth()
                     .height(sizes.destinationImageHeight),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.DarkGray)
+                LandscapistImage(
+                    imageModel   = { imageUrl },
+                    modifier     = Modifier.fillMaxSize(),
+                    imageOptions = ImageOptions(
+                        contentScale = ContentScale.Crop,
+                        alignment    = Alignment.Center,
+                    ),
+                    component = rememberImageComponent {
+                        +ShimmerPlugin(
+                            shimmer = Shimmer.Flash(
+                                baseColor      = colors.surfaceGlass,
+                                highlightColor = colors.borderGlass,
+                            ),
+                        )
+                        +CrossfadePlugin(duration = 500)
+                    },
+                    failure = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFF1C1C1E)),
+                        )
+                    },
                 )
 
                 // Warm gradient (bottom-up gold tint)

@@ -7,10 +7,8 @@ plugins {
 
 kotlin {
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
     
@@ -55,6 +53,11 @@ kotlin {
             // Coil: disabled in commonMain while project uses Kotlin 2.0.x (Coil is built with 2.2.0, causes metadata mismatch).
             // Re-enable after upgrading to Kotlin 2.2.x, or add Coil only in androidMain via expect/actual.
             // implementation(libs.coil.compose)
+
+            // Landscapist — KMP standalone image loading (no Coil/Glide required)
+            implementation(libs.landscapist.image)
+            implementation(libs.landscapist.placeholder)
+            implementation(libs.landscapist.animation)
 
             // Shared module
             implementation(project(":shared"))

@@ -7,10 +7,8 @@ plugins {
 
 kotlin {
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
     
@@ -37,6 +35,25 @@ kotlin {
             implementation("androidx.activity:activity-compose:1.8.2")
             implementation("androidx.browser:browser:1.7.0")
         }
+    }
+}
+
+// Landscapist and Compose 1.9.x pull lifecycle 2.9.x, which breaks Voyager 1.0.0.
+// Force the entire lifecycle BOM to 2.8.7, the last version Voyager is compatible with.
+configurations.all {
+    resolutionStrategy {
+        val lifecycleVersion = "2.8.7"
+        force("androidx.lifecycle:lifecycle-common:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-runtime:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-runtime-compose:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-viewmodel:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-livedata-core:$lifecycleVersion")
+        force("androidx.lifecycle:lifecycle-process:$lifecycleVersion")
     }
 }
 
@@ -74,10 +91,6 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-    
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
     }
     
     compileOptions {
