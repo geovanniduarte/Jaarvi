@@ -41,8 +41,8 @@
 - mvp-08-execute-daily-activities
 
 ## Mapped Use Cases
-- [UC-5.2: Refresh Daily Plan](../../product-discovery/8-UserCases.md#uc-52-refresh-daily-plan)
-- [UC-5.3: View Local Advice for Day](../../product-discovery/8-UserCases.md#uc-53-view-local-advice-for-day)
+- [UC-5.2: Refresh Daily Plan](../../../product-discovery/8-UserCases.md#uc-52-refresh-daily-plan)
+- [UC-5.3: View Local Advice for Day](../../../product-discovery/8-UserCases.md#uc-53-view-local-advice-for-day)
 
 ## Definition of Done
 - [ ] Unit tests for daily refresh logic

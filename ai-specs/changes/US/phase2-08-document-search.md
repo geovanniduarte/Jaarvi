@@ -39,7 +39,7 @@
 - mvp-07-manage-travel-documents
 
 ## Mapped Use Cases
-- [UC-7.8: Search Documents](../../product-discovery/8-UserCases.md#uc-78-search-documents)
+- [UC-7.8: Search Documents](../../../product-discovery/8-UserCases.md#uc-78-search-documents)
 
 ## Definition of Done
 - [ ] Unit tests for search logic

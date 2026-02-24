@@ -43,10 +43,10 @@
 - mvp-05-build-manual-itinerary (reuse same entities)
 
 ## Mapped Use Cases
-- [UC-4.1: Generate Initial Itinerary with AI](../../product-discovery/8-UserCases.md#uc-41-generate-initial-itinerary-with-ai)
-- [UC-4.2: View AI Recommendation Rationale](../../product-discovery/8-UserCases.md#uc-42-view-ai-recommendation-rationale)
-- [UC-4.6: View AI Generation Audit Trail](../../product-discovery/8-UserCases.md#uc-46-view-ai-generation-audit-trail)
-- [UC-10.1: Log AI Generation Metadata](../../product-discovery/8-UserCases.md#uc-101-log-ai-generation-metadata)
+- [UC-4.1: Generate Initial Itinerary with AI](../../../product-discovery/8-UserCases.md#uc-41-generate-initial-itinerary-with-ai)
+- [UC-4.2: View AI Recommendation Rationale](../../../product-discovery/8-UserCases.md#uc-42-view-ai-recommendation-rationale)
+- [UC-4.6: View AI Generation Audit Trail](../../../product-discovery/8-UserCases.md#uc-46-view-ai-generation-audit-trail)
+- [UC-10.1: Log AI Generation Metadata](../../../product-discovery/8-UserCases.md#uc-101-log-ai-generation-metadata)
 
 ## Definition of Done
 - [ ] Unit tests for AI orchestration logic

@@ -41,7 +41,7 @@
 - mvp-07-manage-travel-documents
 
 ## Mapped Use Cases
-- [UC-7.6: Share Document](../../product-discovery/8-UserCases.md#uc-76-share-document)
+- [UC-7.6: Share Document](../../../product-discovery/8-UserCases.md#uc-76-share-document)
 
 ## Definition of Done
 - [ ] Unit tests for share link generation

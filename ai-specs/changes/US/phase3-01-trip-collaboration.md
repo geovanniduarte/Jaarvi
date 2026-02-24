@@ -43,8 +43,8 @@
 - mvp-10-system-sync-and-backup
 
 ## Mapped Use Cases
-- [UC-9.1: Invite Co-Traveler to Trip](../../product-discovery/8-UserCases.md#uc-91-invite-co-traveler-to-trip)
-- [UC-9.2: Collaborate on Itinerary Editing](../../product-discovery/8-UserCases.md#uc-92-collaborate-on-itinerary-editing)
+- [UC-9.1: Invite Co-Traveler to Trip](../../../product-discovery/8-UserCases.md#uc-91-invite-co-traveler-to-trip)
+- [UC-9.2: Collaborate on Itinerary Editing](../../../product-discovery/8-UserCases.md#uc-92-collaborate-on-itinerary-editing)
 
 ## Definition of Done
 - [ ] Unit tests for collaboration logic

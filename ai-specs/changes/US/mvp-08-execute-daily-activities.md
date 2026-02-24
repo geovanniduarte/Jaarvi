@@ -42,13 +42,13 @@
 - mvp-06-view-itinerary
 
 ## Mapped Use Cases
-- [UC-5.1: Open Today View](../../product-discovery/8-UserCases.md#uc-51-open-today-view)
-- [UC-5.4: Check Mandatory Activity Readiness](../../product-discovery/8-UserCases.md#uc-54-check-mandatory-activity-readiness)
-- [UC-6.1: Start Activity](../../product-discovery/8-UserCases.md#uc-61-start-activity)
-- [UC-6.2: Navigate to Activity Location](../../product-discovery/8-UserCases.md#uc-62-navigate-to-activity-location)
-- [UC-6.5: Mark Activity as Complete](../../product-discovery/8-UserCases.md#uc-65-mark-activity-as-complete)
-- [UC-6.6: Skip Activity](../../product-discovery/8-UserCases.md#uc-66-skip-activity)
-- [UC-6.8: View Activity Progress](../../product-discovery/8-UserCases.md#uc-68-view-activity-progress)
+- [UC-5.1: Open Today View](../../../product-discovery/8-UserCases.md#uc-51-open-today-view)
+- [UC-5.4: Check Mandatory Activity Readiness](../../../product-discovery/8-UserCases.md#uc-54-check-mandatory-activity-readiness)
+- [UC-6.1: Start Activity](../../../product-discovery/8-UserCases.md#uc-61-start-activity)
+- [UC-6.2: Navigate to Activity Location](../../../product-discovery/8-UserCases.md#uc-62-navigate-to-activity-location)
+- [UC-6.5: Mark Activity as Complete](../../../product-discovery/8-UserCases.md#uc-65-mark-activity-as-complete)
+- [UC-6.6: Skip Activity](../../../product-discovery/8-UserCases.md#uc-66-skip-activity)
+- [UC-6.8: View Activity Progress](../../../product-discovery/8-UserCases.md#uc-68-view-activity-progress)
 
 ## Definition of Done
 - [ ] Unit tests for execution state management

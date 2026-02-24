@@ -40,7 +40,7 @@
 - mvp-05-build-manual-itinerary
 
 ## Mapped Use Cases
-- [UC-4.3: Request AI Activity Suggestions for Day](../../product-discovery/8-UserCases.md#uc-43-request-ai-activity-suggestions-for-day)
+- [UC-4.3: Request AI Activity Suggestions for Day](../../../product-discovery/8-UserCases.md#uc-43-request-ai-activity-suggestions-for-day)
 
 ## Definition of Done
 - [ ] Unit tests for suggestion logic

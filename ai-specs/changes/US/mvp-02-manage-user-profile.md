@@ -36,8 +36,8 @@
 - mvp-01-create-user-account
 
 ## Mapped Use Cases
-- [UC-1.2: Manage User Profile](../../product-discovery/8-UserCases.md#uc-12-manage-user-profile)
-- [UC-1.3: Set Travel Preferences](../../product-discovery/8-UserCases.md#uc-13-set-travel-preferences)
+- [UC-1.2: Manage User Profile](../../../product-discovery/8-UserCases.md#uc-12-manage-user-profile)
+- [UC-1.3: Set Travel Preferences](../../../product-discovery/8-UserCases.md#uc-13-set-travel-preferences)
 
 ## Definition of Done
 - [ ] Unit tests for profile service

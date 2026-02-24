@@ -40,7 +40,7 @@
 - mvp-08-execute-daily-activities
 
 ## Mapped Use Cases
-- [UC-4.5: Generate Plan B Alternatives](../../product-discovery/8-UserCases.md#uc-45-generate-plan-b-alternatives)
+- [UC-4.5: Generate Plan B Alternatives](../../../product-discovery/8-UserCases.md#uc-45-generate-plan-b-alternatives)
 
 ## Definition of Done
 - [ ] Unit tests for alternative generation logic

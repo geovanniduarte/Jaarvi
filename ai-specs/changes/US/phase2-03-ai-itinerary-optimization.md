@@ -41,7 +41,7 @@
 - mvp-06-view-itinerary
 
 ## Mapped Use Cases
-- [UC-4.4: Optimize Itinerary with AI](../../product-discovery/8-UserCases.md#uc-44-optimize-itinerary-with-ai)
+- [UC-4.4: Optimize Itinerary with AI](../../../product-discovery/8-UserCases.md#uc-44-optimize-itinerary-with-ai)
 
 ## Definition of Done
 - [ ] Unit tests for optimization algorithm

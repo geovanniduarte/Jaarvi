@@ -43,8 +43,8 @@
 - All data models must support offline caching
 
 ## Mapped Use Cases
-- [UC-9.3: Enable Full Offline Mode](../../product-discovery/8-UserCases.md#uc-93-enable-full-offline-mode)
-- [UC-9.4: Sync Offline Changes](../../product-discovery/8-UserCases.md#uc-94-sync-offline-changes)
+- [UC-9.3: Enable Full Offline Mode](../../../product-discovery/8-UserCases.md#uc-93-enable-full-offline-mode)
+- [UC-9.4: Sync Offline Changes](../../../product-discovery/8-UserCases.md#uc-94-sync-offline-changes)
 
 ## Definition of Done
 - [ ] Unit tests for offline logic

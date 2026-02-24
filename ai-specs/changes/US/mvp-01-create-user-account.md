@@ -35,7 +35,7 @@
 - None
 
 ## Mapped Use Cases
-- [UC-1.1: Create User Account](../../product-discovery/8-UserCases.md#uc-11-create-user-account)
+- [UC-1.1: Create User Account](../../../product-discovery/8-UserCases.md#uc-11-create-user-account)
 
 ## Definition of Done
 - [ ] Unit tests for authentication service

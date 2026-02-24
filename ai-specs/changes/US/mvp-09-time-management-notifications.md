@@ -40,7 +40,7 @@
 - mvp-08-execute-daily-activities
 
 ## Mapped Use Cases
-- [UC-6.7: Receive Time Management Notifications](../../product-discovery/8-UserCases.md#uc-67-receive-time-management-notifications)
+- [UC-6.7: Receive Time Management Notifications](../../../product-discovery/8-UserCases.md#uc-67-receive-time-management-notifications)
 
 ## Definition of Done
 - [ ] Unit tests for notification scheduling

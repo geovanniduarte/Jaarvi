@@ -41,14 +41,14 @@
 - mvp-03-create-trip-with-destinations
 
 ## Mapped Use Cases
-- [UC-3.1: Initialize Empty Day Plans](../../product-discovery/8-UserCases.md#uc-31-initialize-empty-day-plans)
-- [UC-3.2: Add Activity to Day Plan](../../product-discovery/8-UserCases.md#uc-32-add-activity-to-day-plan)
-- [UC-3.3: Edit Activity Details](../../product-discovery/8-UserCases.md#uc-33-edit-activity-details)
-- [UC-3.4: Delete Activity](../../product-discovery/8-UserCases.md#uc-34-delete-activity)
-- [UC-3.5: Reorder Activities Within Day](../../product-discovery/8-UserCases.md#uc-35-reorder-activities-within-day)
-- [UC-3.6: Move Activity Between Days](../../product-discovery/8-UserCases.md#uc-36-move-activity-between-days)
-- [UC-3.7: Add Transfer Activity](../../product-discovery/8-UserCases.md#uc-37-add-transfer-activity)
-- [UC-3.8: Add Lodging Anchor](../../product-discovery/8-UserCases.md#uc-38-add-lodging-anchor)
+- [UC-3.1: Initialize Empty Day Plans](../../../product-discovery/8-UserCases.md#uc-31-initialize-empty-day-plans)
+- [UC-3.2: Add Activity to Day Plan](../../../product-discovery/8-UserCases.md#uc-32-add-activity-to-day-plan)
+- [UC-3.3: Edit Activity Details](../../../product-discovery/8-UserCases.md#uc-33-edit-activity-details)
+- [UC-3.4: Delete Activity](../../../product-discovery/8-UserCases.md#uc-34-delete-activity)
+- [UC-3.5: Reorder Activities Within Day](../../../product-discovery/8-UserCases.md#uc-35-reorder-activities-within-day)
+- [UC-3.6: Move Activity Between Days](../../../product-discovery/8-UserCases.md#uc-36-move-activity-between-days)
+- [UC-3.7: Add Transfer Activity](../../../product-discovery/8-UserCases.md#uc-37-add-transfer-activity)
+- [UC-3.8: Add Lodging Anchor](../../../product-discovery/8-UserCases.md#uc-38-add-lodging-anchor)
 
 ## Definition of Done
 - [ ] Unit tests for activity CRUD operations

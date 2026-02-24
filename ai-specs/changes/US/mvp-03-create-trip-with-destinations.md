@@ -39,10 +39,10 @@
 - mvp-02-manage-user-profile
 
 ## Mapped Use Cases
-- [UC-2.1: Create New Trip](../../product-discovery/8-UserCases.md#uc-21-create-new-trip)
-- [UC-2.2: Add Destinations to Trip](../../product-discovery/8-UserCases.md#uc-22-add-destinations-to-trip)
-- [UC-2.3: Set Trip-Specific Preferences](../../product-discovery/8-UserCases.md#uc-23-set-trip-specific-preferences)
-- [UC-2.4: Validate Trip Configuration](../../product-discovery/8-UserCases.md#uc-24-validate-trip-configuration)
+- [UC-2.1: Create New Trip](../../../product-discovery/8-UserCases.md#uc-21-create-new-trip)
+- [UC-2.2: Add Destinations to Trip](../../../product-discovery/8-UserCases.md#uc-22-add-destinations-to-trip)
+- [UC-2.3: Set Trip-Specific Preferences](../../../product-discovery/8-UserCases.md#uc-23-set-trip-specific-preferences)
+- [UC-2.4: Validate Trip Configuration](../../../product-discovery/8-UserCases.md#uc-24-validate-trip-configuration)
 
 ## Definition of Done
 - [ ] Unit tests for trip creation logic

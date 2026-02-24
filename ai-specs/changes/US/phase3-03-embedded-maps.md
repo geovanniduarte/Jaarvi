@@ -43,7 +43,7 @@
 - phase3-02-full-offline-mode (for offline maps)
 
 ## Mapped Use Cases
-- [UC-9.5: View Embedded Maps (v2)](../../product-discovery/8-UserCases.md#uc-95-view-embedded-maps-v2)
+- [UC-9.5: View Embedded Maps (v2)](../../../product-discovery/8-UserCases.md#uc-95-view-embedded-maps-v2)
 
 ## Definition of Done
 - [ ] Unit tests for route calculation

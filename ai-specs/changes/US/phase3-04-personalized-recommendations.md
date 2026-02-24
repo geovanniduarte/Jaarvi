@@ -41,7 +41,7 @@
 - Multiple completed trips with data
 
 ## Mapped Use Cases
-- [UC-9.6: Receive Personalized Recommendations from History](../../product-discovery/8-UserCases.md#uc-96-receive-personalized-recommendations-from-history)
+- [UC-9.6: Receive Personalized Recommendations from History](../../../product-discovery/8-UserCases.md#uc-96-receive-personalized-recommendations-from-history)
 
 ## Definition of Done
 - [ ] Unit tests for analytics logic

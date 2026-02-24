@@ -39,9 +39,9 @@
 - mvp-03-create-trip-with-destinations
 
 ## Mapped Use Cases
-- [UC-2.5: View Trip List](../../product-discovery/8-UserCases.md#uc-25-view-trip-list)
-- [UC-2.6: Edit Trip Details](../../product-discovery/8-UserCases.md#uc-26-edit-trip-details)
-- [UC-2.7: Delete Trip](../../product-discovery/8-UserCases.md#uc-27-delete-trip)
+- [UC-2.5: View Trip List](../../../product-discovery/8-UserCases.md#uc-25-view-trip-list)
+- [UC-2.6: Edit Trip Details](../../../product-discovery/8-UserCases.md#uc-26-edit-trip-details)
+- [UC-2.7: Delete Trip](../../../product-discovery/8-UserCases.md#uc-27-delete-trip)
 
 ## Definition of Done
 - [ ] Unit tests for trip service CRUD operations

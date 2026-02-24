@@ -44,7 +44,7 @@
 - phase2-07-affiliate-recommendations
 
 ## Mapped Use Cases
-- [UC-9.7: Integrate Partner Booking API](../../product-discovery/8-UserCases.md#uc-97-integrate-partner-booking-api)
+- [UC-9.7: Integrate Partner Booking API](../../../product-discovery/8-UserCases.md#uc-97-integrate-partner-booking-api)
 
 ## Definition of Done
 - [ ] Unit tests for booking logic

@@ -41,10 +41,10 @@
 - mvp-08-execute-daily-activities
 
 ## Mapped Use Cases
-- [UC-6.3: View Landmark-Based Instructions](../../product-discovery/8-UserCases.md#uc-63-view-landmark-based-instructions)
-- [UC-6.4: View Operational Step Guidance](../../product-discovery/8-UserCases.md#uc-64-view-operational-step-guidance)
-- [UC-6.9: Report Activity Issue](../../product-discovery/8-UserCases.md#uc-69-report-activity-issue)
-- [UC-6.10: Access Problem Resolution Playbook](../../product-discovery/8-UserCases.md#uc-610-access-problem-resolution-playbook)
+- [UC-6.3: View Landmark-Based Instructions](../../../product-discovery/8-UserCases.md#uc-63-view-landmark-based-instructions)
+- [UC-6.4: View Operational Step Guidance](../../../product-discovery/8-UserCases.md#uc-64-view-operational-step-guidance)
+- [UC-6.9: Report Activity Issue](../../../product-discovery/8-UserCases.md#uc-69-report-activity-issue)
+- [UC-6.10: Access Problem Resolution Playbook](../../../product-discovery/8-UserCases.md#uc-610-access-problem-resolution-playbook)
 
 ## Definition of Done
 - [ ] Unit tests for step guide logic

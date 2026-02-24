@@ -131,10 +131,10 @@ Assuming a team velocity of **25-30 SP per 2-week sprint**:
 
 ## 🔗 Quick Links
 
-- [Product Discovery](../../product-discovery/1-JaarviGeneralSpecs.md)
-- [Use Cases](../../product-discovery/8-UserCases.md)
-- [Backend Standards](../specs/backend-standards.mdc)
-- [API Specification](../specs/api-spec.yml)
+- [Product Discovery](../../../product-discovery/1-JaarviGeneralSpecs.md)
+- [Use Cases](../../../product-discovery/8-UserCases.md)
+- [Backend Standards](../../specs/backend-standards.mdc)
+- [API Specification](../../specs/api-spec.yml)
 
 ---
 

@@ -41,8 +41,8 @@
 - All other MVP features (data to sync)
 
 ## Mapped Use Cases
-- [UC-10.4: Sync User Data Across Devices](../../product-discovery/8-UserCases.md#uc-104-sync-user-data-across-devices)
-- [UC-10.5: Backup and Restore Trip Data](../../product-discovery/8-UserCases.md#uc-105-backup-and-restore-trip-data)
+- [UC-10.4: Sync User Data Across Devices](../../../product-discovery/8-UserCases.md#uc-104-sync-user-data-across-devices)
+- [UC-10.5: Backup and Restore Trip Data](../../../product-discovery/8-UserCases.md#uc-105-backup-and-restore-trip-data)
 
 ## Definition of Done
 - [ ] Unit tests for sync logic

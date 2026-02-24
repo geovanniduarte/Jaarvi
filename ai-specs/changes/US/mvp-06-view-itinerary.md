@@ -38,10 +38,10 @@
 - mvp-05-build-manual-itinerary
 
 ## Mapped Use Cases
-- [UC-3.9: View Day Plan Summary](../../product-discovery/8-UserCases.md#uc-39-view-day-plan-summary)
-- [UC-3.10: View Full Itinerary](../../product-discovery/8-UserCases.md#uc-310-view-full-itinerary)
-- [UC-3.11: Detect Time Conflicts](../../product-discovery/8-UserCases.md#uc-311-detect-time-conflicts)
-- [UC-3.12: Calculate Daily Budget](../../product-discovery/8-UserCases.md#uc-312-calculate-daily-budget)
+- [UC-3.9: View Day Plan Summary](../../../product-discovery/8-UserCases.md#uc-39-view-day-plan-summary)
+- [UC-3.10: View Full Itinerary](../../../product-discovery/8-UserCases.md#uc-310-view-full-itinerary)
+- [UC-3.11: Detect Time Conflicts](../../../product-discovery/8-UserCases.md#uc-311-detect-time-conflicts)
+- [UC-3.12: Calculate Daily Budget](../../../product-discovery/8-UserCases.md#uc-312-calculate-daily-budget)
 
 ## Definition of Done
 - [ ] Unit tests for cost aggregation

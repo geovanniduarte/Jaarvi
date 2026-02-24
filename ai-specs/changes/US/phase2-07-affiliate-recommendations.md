@@ -43,11 +43,11 @@
 - phase2-01-ai-itinerary-generation (AI can suggest relevant products)
 
 ## Mapped Use Cases
-- [UC-8.1: View Contextual Recommendation](../../product-discovery/8-UserCases.md#uc-81-view-contextual-recommendation)
-- [UC-8.2: Open Affiliate Link](../../product-discovery/8-UserCases.md#uc-82-open-affiliate-link)
-- [UC-8.3: Dismiss Recommendation](../../product-discovery/8-UserCases.md#uc-83-dismiss-recommendation)
-- [UC-8.4: Retry Failed Affiliate Link](../../product-discovery/8-UserCases.md#uc-84-retry-failed-affiliate-link)
-- [UC-10.3: Track Affiliate Click Attribution](../../product-discovery/8-UserCases.md#uc-103-track-affiliate-click-attribution)
+- [UC-8.1: View Contextual Recommendation](../../../product-discovery/8-UserCases.md#uc-81-view-contextual-recommendation)
+- [UC-8.2: Open Affiliate Link](../../../product-discovery/8-UserCases.md#uc-82-open-affiliate-link)
+- [UC-8.3: Dismiss Recommendation](../../../product-discovery/8-UserCases.md#uc-83-dismiss-recommendation)
+- [UC-8.4: Retry Failed Affiliate Link](../../../product-discovery/8-UserCases.md#uc-84-retry-failed-affiliate-link)
+- [UC-10.3: Track Affiliate Click Attribution](../../../product-discovery/8-UserCases.md#uc-103-track-affiliate-click-attribution)
 
 ## Definition of Done
 - [ ] Unit tests for recommendation engine

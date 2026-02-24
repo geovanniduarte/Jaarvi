@@ -41,12 +41,12 @@
 - mvp-05-build-manual-itinerary (for linking to activities)
 
 ## Mapped Use Cases
-- [UC-7.1: Upload Document](../../product-discovery/8-UserCases.md#uc-71-upload-document)
-- [UC-7.2: Link Document to Trip/Day/Activity](../../product-discovery/8-UserCases.md#uc-72-link-document-to-tripdayactivity)
-- [UC-7.3: Tag Document with Metadata](../../product-discovery/8-UserCases.md#uc-73-tag-document-with-metadata)
-- [UC-7.4: View Documents by Trip](../../product-discovery/8-UserCases.md#uc-74-view-documents-by-trip)
-- [UC-7.5: Access Document in Context](../../product-discovery/8-UserCases.md#uc-75-access-document-in-context)
-- [UC-7.7: Delete Document](../../product-discovery/8-UserCases.md#uc-77-delete-document)
+- [UC-7.1: Upload Document](../../../product-discovery/8-UserCases.md#uc-71-upload-document)
+- [UC-7.2: Link Document to Trip/Day/Activity](../../../product-discovery/8-UserCases.md#uc-72-link-document-to-tripdayactivity)
+- [UC-7.3: Tag Document with Metadata](../../../product-discovery/8-UserCases.md#uc-73-tag-document-with-metadata)
+- [UC-7.4: View Documents by Trip](../../../product-discovery/8-UserCases.md#uc-74-view-documents-by-trip)
+- [UC-7.5: Access Document in Context](../../../product-discovery/8-UserCases.md#uc-75-access-document-in-context)
+- [UC-7.7: Delete Document](../../../product-discovery/8-UserCases.md#uc-77-delete-document)
 
 ## Definition of Done
 - [ ] Unit tests for document service
