@@ -485,6 +485,67 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/trips/{id}/planning-context:
+    post:
+      summary: Save trip planning context
+      description: |
+        Save a versioned snapshot of the user's trip preferences and destination coverage.
+        Each call increments the version number automatically.
+      tags:
+        - Trips
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Trip ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavePlanningContextRequest'
+      responses:
+        '201':
+          description: Planning context saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/TripPlanningContext'
+        '400':
+          description: Validation error (invalid travelStyle, budget, pace, or interests)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — user does not own this trip
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Trip not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/trips/{id}/destinations/{destinationId}:
     put:
       summary: Update destination
@@ -1564,6 +1625,69 @@ components:
           type: string
           format: date-time
         updatedAt:
+          type: string
+          format: date-time
+
+    SavePlanningContextRequest:
+      type: object
+      description: User preferences for trip planning. All fields are optional.
+      properties:
+        travelStyle:
+          type: string
+          enum: [adventurous, cultural, relaxed, mixed]
+          nullable: true
+        budget:
+          type: string
+          enum: [budget, moderate, premium]
+          nullable: true
+        pace:
+          type: string
+          enum: [slow, medium, fast]
+          nullable: true
+        interests:
+          type: array
+          items:
+            type: string
+            enum: [museums, food, nature, nightlife, shopping, outdoor]
+          nullable: true
+        specialRequirements:
+          type: string
+          maxLength: 500
+          nullable: true
+
+    TripPlanningContext:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          description: Auto-incremented version number for this trip's contexts
+        inputsSnapshot:
+          type: object
+          description: Snapshot of the user preferences at the time of saving
+        coverageSnapshot:
+          type: array
+          description: Snapshot of coverage data for each destination at the time of saving
+          items:
+            type: object
+            properties:
+              cityId:
+                type: string
+                format: uuid
+              cityName:
+                type: string
+              level:
+                type: string
+                nullable: true
+              notes:
+                type: string
+                nullable: true
+        createdAt:
           type: string
           format: date-time
 

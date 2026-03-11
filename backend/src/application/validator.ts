@@ -131,3 +131,130 @@ export function throwIfInvalid(result: ValidationResult, message = 'Validation f
  * Export validation utilities
  */
 export { ValidationResult, createValidationResult, addError };
+
+/**
+ * Validates the request body for creating a trip.
+ * Throws ValidationError if invalid.
+ */
+export function validateCreateTrip(data: unknown): void {
+  const body = data as Record<string, unknown>;
+  const result = createValidationResult();
+
+  if (!body.startDate) {
+    addError(result, 'startDate', 'startDate is required');
+  } else if (!isValidISODate(body.startDate)) {
+    addError(result, 'startDate', 'startDate must be a valid date (YYYY-MM-DD)');
+  } else {
+    const start = new Date(body.startDate as string);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (start < today) {
+      addError(result, 'startDate', 'startDate must be today or in the future');
+    }
+  }
+
+  if (!body.endDate) {
+    addError(result, 'endDate', 'endDate is required');
+  } else if (!isValidISODate(body.endDate)) {
+    addError(result, 'endDate', 'endDate must be a valid date (YYYY-MM-DD)');
+  } else if (body.startDate && isValidISODate(body.startDate)) {
+    const start = new Date(body.startDate as string);
+    const end = new Date(body.endDate as string);
+    if (end <= start) {
+      addError(result, 'endDate', 'endDate must be strictly after startDate');
+    }
+  }
+
+  if (body.name !== undefined && body.name !== null) {
+    if (typeof body.name !== 'string') {
+      addError(result, 'name', 'name must be a string');
+    } else if (!hasMaxLength(body.name, 100)) {
+      addError(result, 'name', 'name must not exceed 100 characters');
+    }
+  }
+
+  throwIfInvalid(result, 'Trip validation failed');
+}
+
+/**
+ * Validates the request body for adding a destination to a trip.
+ * Throws ValidationError if invalid.
+ */
+export function validateAddDestination(data: unknown): void {
+  const body = data as Record<string, unknown>;
+  const result = createValidationResult();
+
+  if (!body.cityId || !isValidUUID(body.cityId)) {
+    addError(result, 'cityId', 'cityId is required and must be a valid UUID');
+  }
+
+  if (body.dayOrder === undefined || body.dayOrder === null) {
+    addError(result, 'dayOrder', 'dayOrder is required');
+  } else if (!isPositiveInteger(body.dayOrder)) {
+    addError(result, 'dayOrder', 'dayOrder must be a positive integer');
+  }
+
+  if (body.daysCount === undefined || body.daysCount === null) {
+    addError(result, 'daysCount', 'daysCount is required');
+  } else if (!isPositiveInteger(body.daysCount)) {
+    addError(result, 'daysCount', 'daysCount must be a positive integer');
+  }
+
+  throwIfInvalid(result, 'Destination validation failed');
+}
+
+const VALID_TRAVEL_STYLES = ['adventurous', 'cultural', 'relaxed', 'mixed'];
+const VALID_BUDGETS = ['budget', 'moderate', 'premium'];
+const VALID_PACES = ['slow', 'medium', 'fast'];
+const VALID_INTERESTS = ['museums', 'food', 'nature', 'nightlife', 'shopping', 'outdoor'];
+
+/**
+ * Validates the request body for saving a planning context.
+ * All fields are optional; only validates format when present.
+ * Throws ValidationError if invalid.
+ */
+export function validatePlanningContext(data: unknown): void {
+  const body = data as Record<string, unknown>;
+  const result = createValidationResult();
+
+  if (body.travelStyle !== undefined && body.travelStyle !== null) {
+    if (!isOneOf(body.travelStyle, VALID_TRAVEL_STYLES)) {
+      addError(result, 'travelStyle', `travelStyle must be one of: ${VALID_TRAVEL_STYLES.join(', ')}`);
+    }
+  }
+
+  if (body.budget !== undefined && body.budget !== null) {
+    if (!isOneOf(body.budget, VALID_BUDGETS)) {
+      addError(result, 'budget', `budget must be one of: ${VALID_BUDGETS.join(', ')}`);
+    }
+  }
+
+  if (body.pace !== undefined && body.pace !== null) {
+    if (!isOneOf(body.pace, VALID_PACES)) {
+      addError(result, 'pace', `pace must be one of: ${VALID_PACES.join(', ')}`);
+    }
+  }
+
+  if (body.interests !== undefined && body.interests !== null) {
+    if (!Array.isArray(body.interests)) {
+      addError(result, 'interests', 'interests must be an array');
+    } else {
+      const invalid = (body.interests as unknown[]).filter(
+        (i) => !VALID_INTERESTS.includes(i as string)
+      );
+      if (invalid.length > 0) {
+        addError(result, 'interests', `interests contains invalid values: ${invalid.join(', ')}`);
+      }
+    }
+  }
+
+  if (body.specialRequirements !== undefined && body.specialRequirements !== null) {
+    if (typeof body.specialRequirements !== 'string') {
+      addError(result, 'specialRequirements', 'specialRequirements must be a string');
+    } else if (!hasMaxLength(body.specialRequirements, 500)) {
+      addError(result, 'specialRequirements', 'specialRequirements must not exceed 500 characters');
+    }
+  }
+
+  throwIfInvalid(result, 'Planning context validation failed');
+}

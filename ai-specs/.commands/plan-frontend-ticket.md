@@ -12,7 +12,7 @@ Obtain a step-by-step plan for a Jira ticket that is ready to start implementing
 
 # Process and rules
 
-1. Adopt the role of `ai-specs/.agents/frontend-developer.md`
+1. Adopt the role of `.cursor/agents/frontend-developer.md`
 2. Analyze the Jira ticket mentioned in #ticket using the MCP. If the mention is a local file, then avoid using MCP
 3. Propose a step-by-step plan for the frontend part, taking into account everything mentioned in the ticket and applying the project's best practices and rules you can find in `/ai-specs/specs`.
 4. Apply the best practices of your role to ensure the developer can be fully autonomous and implement the ticket end-to-end using only your plan.

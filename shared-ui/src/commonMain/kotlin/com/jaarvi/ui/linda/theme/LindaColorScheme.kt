@@ -85,35 +85,35 @@ val LocalLindaColorScheme = compositionLocalOf {
 
 // ── Dark-mode defaults ────────────────────────────────────────
 val LindaDarkColorScheme = LindaColorScheme(
-    background          = Color(0xFF0A0C0A),
-    surfaceGlass        = Color(0x1AFFFFFF),   // rgba(255,255,255,0.10)
-    surfaceGlassLight   = Color(0x0DFFFFFF),   // rgba(255,255,255,0.05)
+    background          = ColorBgPrimary,
+    surfaceGlass        = ColorBgGlass,
+    surfaceGlassLight   = ColorBgGlassLight,
 
-    textPrimary         = Color(0xFFF1F5F9),
-    textSecondary       = Color(0xFFE2E8F0),
-    textMuted           = Color(0xFF94A3B8),
-    textTertiary        = Color(0xFF64748B),
-    textLabel           = Color(0xFFCBD5E1),
+    textPrimary         = ColorTextPrimary,
+    textSecondary       = ColorTextSecondary,
+    textMuted           = ColorTextMuted,
+    textTertiary        = ColorTextTertiary,
+    textLabel           = ColorTextLabel,
 
-    accentGold          = Color(0xFFF2B90D),
-    accentLime          = Color(0xFFA3E635),
-    onAccent            = Color(0xFF0A0C0A),
+    accentGold          = ColorAccentGold,
+    accentLime          = ColorAccentLime,
+    onAccent            = ColorBgPrimary,
 
-    borderGlass         = Color(0x33FFFFFF),   // rgba(255,255,255,0.20)
-    borderGlassStrong   = Color(0x4DFFFFFF),   // rgba(255,255,255,0.30)
+    borderGlass         = ColorBorderGlass,
+    borderGlassStrong   = ColorBorderGlassStrong,
 
-    overlayWarmStart    = Color(0x66F2B90D),
-    overlayWarmEnd      = Color(0x1AF2B90D),
-    overlayDarkStart    = Color(0xCC000000),
-    overlayDarkEnd      = Color(0x00000000),
+    overlayWarmStart    = ColorOverlayWarmStart,
+    overlayWarmEnd      = ColorOverlayWarmEnd,
+    overlayDarkStart    = ColorOverlayDarkStart,
+    overlayDarkEnd      = ColorOverlayDarkEnd,
 
-    glowGold            = Color(0x66F2B90D),
-    glowLime            = Color(0x66A3E635),
-    glowEmerald         = Color(0x66064E3B),
-    glowGoldLight       = Color(0x66F2B90D),
-    glowEmeraldLight    = Color(0x4D063F2E),
+    glowGold            = ColorGlowGold,
+    glowLime            = ColorGlowLime,
+    glowEmerald         = ColorGlowEmerald,
+    glowGoldLight       = ColorGlowGoldLight,
+    glowEmeraldLight    = ColorGlowEmeraldLight,
 
-    statusActive        = Color(0xFFA3E635),   // lime
-    statusCompleted     = Color(0xFFF2B90D),   // gold
-    statusPlanned       = Color(0x99FFFFFF),   // white 60%
+    statusActive        = ColorStatusActive,
+    statusCompleted     = ColorStatusCompleted,
+    statusPlanned       = ColorStatusPlanned,
 )

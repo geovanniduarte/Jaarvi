@@ -1,0 +1,125 @@
+---
+description: Linda Design System component authoring rules. Enforces slot-based API pattern and mandatory token usage for all Linda composables.
+globs: **/linda/**/*.kt
+alwaysApply: false
+---
+
+# Linda Design System — Component Rules
+
+## 1. Slot pattern is the primary composition model
+
+Every Linda composable must expose its variable regions as `@Composable` slots, never as raw data or strings. Data params are only acceptable for primitive values that drive internal behaviour (e.g. `expanded: Boolean`, `enabled: Boolean`, `onClick`).
+
+```kotlin
+// ❌ BAD — string locks the label to plain text
+fun LindaFoo(label: String)
+
+// ✅ GOOD — slot lets the caller use any composable
+fun LindaFoo(label: @Composable (() -> Unit)? = null)
+```
+
+### Scope interfaces for multi-slot DSLs
+
+When a composable accepts repeated child elements (chips, segments, items), expose them through a `@Composable` function inside a scope interface — not through a `List<T>`.
+
+```kotlin
+// ❌ BAD
+fun <T> LindaFoo(items: List<T>, itemLabel: (T) -> String)
+
+// ✅ GOOD
+interface LindaFooScope {
+    @Composable
+    fun LindaFooItem(selected: Boolean, onClick: () -> Unit, content: @Composable () -> Unit)
+}
+
+@Composable
+fun LindaFoo(content: @Composable LindaFooScope.() -> Unit)
+```
+
+The composable creates a private `LindaFooScopeImpl` internally and invokes the lambda with it as receiver. Callers never see the impl class.
+
+### Required composable slots
+
+Every Linda component must declare these slots when the concept applies:
+
+| Slot | Type | Purpose |
+|---|---|---|
+| `label` | `@Composable (() -> Unit)?` | Floating or section label |
+| `helper` | `@Composable (() -> Unit)?` | Helper / error text below the component |
+| `placeholder` | `@Composable (() -> Unit)?` | Empty-state hint inside a field |
+| `content` | `@Composable (() -> Unit)?` | Primary selected-value display |
+| `leadingContent` | `@Composable (() -> Unit)?` | Leading icon or decoration |
+
+---
+
+## 2. All visual values must come from Linda tokens
+
+Never use raw literals for colors, dimensions, typography, or borders inside a Linda composable. Always read from `LindaTheme.*`.
+
+```kotlin
+// ❌ BAD
+Text(text = label, color = Color(0xFFB0B0B0), fontSize = 14.sp)
+Box(modifier = Modifier.padding(8.dp).clip(RoundedCornerShape(12.dp)))
+
+// ✅ GOOD
+Text(text = label, color = LindaTheme.colors.textMuted,
+     style = LindaTheme.typography.labelSmall)
+Box(modifier = Modifier
+    .padding(LindaTheme.spacing.md)
+    .clip(LindaTheme.borders.radiusMd))
+```
+
+### Token namespaces
+
+| Namespace | Examples |
+|---|---|
+| `LindaTheme.colors.*` | `textPrimary`, `textMuted`, `accentLime`, `accentGold`, `surfaceGlass`, `borderGlass`, `glowLime`, `statusError` |
+| `LindaTheme.spacing.*` | `xs`, `sm`, `md`, `lg`, `xl` |
+| `LindaTheme.typography.*` | `displaySmall`, `bodyMedium`, `bodySmall`, `labelSmall`, `labelLarge` |
+| `LindaTheme.borders.*` | `radiusMd`, `radiusFull` |
+
+---
+
+## 3. Size presets follow the factory companion pattern
+
+Size configuration classes use `private constructor` + `@Composable` companion factory functions. Factories must read dimensions from `LindaTheme.spacing.*` — never from raw `Dp` literals.
+
+```kotlin
+// ❌ BAD — raw literals inside factory
+class LindaFooSize private constructor(internal val paddingV: Dp, internal val paddingH: Dp) {
+    companion object {
+        fun small()  = LindaFooSize(8.dp,  12.dp)   // ← raw Dp, violates rule #2
+        fun medium() = LindaFooSize(12.dp, 16.dp)
+    }
+}
+
+// ✅ GOOD — factories are @Composable so they can read LindaTheme tokens
+class LindaFooSize private constructor(internal val paddingV: Dp, internal val paddingH: Dp) {
+    companion object {
+        @Composable
+        fun small()  = LindaFooSize(paddingV = LindaTheme.spacing.xs, paddingH = LindaTheme.spacing.sm)
+        @Composable
+        fun medium() = LindaFooSize(paddingV = LindaTheme.spacing.sm, paddingH = LindaTheme.spacing.md)
+        @Composable
+        fun large()  = LindaFooSize(paddingV = LindaTheme.spacing.md, paddingH = LindaTheme.spacing.lg)
+    }
+}
+```
+
+---
+
+## 4. Enabled / disabled state is always a param, never inferred
+
+```kotlin
+// ✅ Always declare separate enabled flags when two actions exist independently
+fun LindaStepper(
+    incrementEnabled: Boolean = true,
+    decrementEnabled: Boolean = true,
+)
+```
+
+---
+
+## 5. Accessibility
+
+Every interactive Linda composable must include an `accessibilityValue: String = ""` param that is wired to `semantics { contentDescription = accessibilityValue }` on the relevant node.

@@ -43,3 +43,8 @@ internal val ColorGlowLime          = Color(0x66A3E635)
 internal val ColorGlowEmerald       = Color(0x66064E3B)
 internal val ColorGlowGoldLight     = Color(0x66F2B90D)
 internal val ColorGlowEmeraldLight  = Color(0x4D063F2E)
+
+// Status semantics
+internal val ColorStatusActive    = Color(0xFFA3E635)   // lime   — active / in-progress
+internal val ColorStatusCompleted = Color(0xFFF2B90D)   // gold   — completed
+internal val ColorStatusPlanned   = Color(0x99FFFFFF)   // white 60% — planned / upcoming

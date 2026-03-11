@@ -17,6 +17,9 @@ FROM node:20-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Prisma query engine requires libssl at runtime
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 # Copy dependencies from deps stage (includes generated Prisma client),
 # then prune dev dependencies to keep the image smaller.
 COPY package.json package-lock.json ./
