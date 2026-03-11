@@ -1,4 +1,4 @@
-package com.jaarvi.ui.linda.components
+package com.jaarvi.ui.linda.components.level1
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

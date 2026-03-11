@@ -3,9 +3,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.jaarvi.ui.linda.components.ButtonGlow
-import com.jaarvi.ui.linda.components.ButtonVariant
-import com.jaarvi.ui.linda.components.LindaButton
+import com.jaarvi.ui.linda.components.level1.ButtonGlow
+import com.jaarvi.ui.linda.components.level1.ButtonVariant
+import com.jaarvi.ui.linda.components.level1.LindaButton
 
 @Composable
 @Preview(showBackground = false)

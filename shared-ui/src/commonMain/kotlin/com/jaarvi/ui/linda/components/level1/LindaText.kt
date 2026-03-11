@@ -1,4 +1,4 @@
-package com.jaarvi.ui.linda.components
+package com.jaarvi.ui.linda.components.level1
 
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable

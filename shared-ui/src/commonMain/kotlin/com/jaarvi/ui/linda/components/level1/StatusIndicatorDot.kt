@@ -1,4 +1,4 @@
-package com.jaarvi.ui.linda.components
+package com.jaarvi.ui.linda.components.level1
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import com.jaarvi.ui.linda.components.level2.DestinationStatus
 import com.jaarvi.ui.linda.theme.LindaTheme
 
 // ─────────────────────────────────────────────────────────────
