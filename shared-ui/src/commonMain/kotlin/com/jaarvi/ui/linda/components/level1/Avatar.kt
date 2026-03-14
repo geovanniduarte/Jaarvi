@@ -6,12 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import com.jaarvi.ui.linda.components.level0.icons.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,27 +26,27 @@ import com.skydoves.landscapist.placeholder.shimmer.Shimmer
 import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 
 // ─────────────────────────────────────────────────────────────
-// LindaAvatar size variants
+// LindaAvatar — LEVEL 1
+//
+// Circular user image with a glass-border ring.
+// Loaded via Landscapist (shimmer placeholder + crossfade).
 // ─────────────────────────────────────────────────────────────
+
+// ── Size preset ───────────────────────────────────────────────
 
 enum class AvatarSize {
-    SM,  // 32 dp
-    MD,  // 36 dp
-    LG,  // 48 dp
+    SM,  // 32 dp — sizes.avatarSm
+    MD,  // 36 dp — sizes.avatarMd
+    LG,  // 48 dp — sizes.avatarLg
 }
 
-// ─────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────
 
 /**
- * LindaAvatar — circular user image with a glass border.
- *
- * Loads [imageUrl] via Landscapist (KMP image loading). While loading,
- * a shimmer placeholder is shown. On failure, a fallback person icon is shown.
- *
- * @param imageUrl           Remote image URL to load.
- * @param modifier           Modifier applied to the outer circle container.
- * @param size               Diameter preset: [AvatarSize.SM], [AvatarSize.MD], [AvatarSize.LG].
- * @param contentDescription Accessibility description forwarded to the image.
+ * @param imageUrl            Remote or local image URL.
+ * @param modifier            Optional layout modifier.
+ * @param size                Diameter preset: [AvatarSize.SM], [AvatarSize.MD], [AvatarSize.LG].
+ * @param contentDescription  Accessibility description for the image.
  */
 @Composable
 fun LindaAvatar(
@@ -70,12 +69,14 @@ fun LindaAvatar(
         modifier = modifier
             .size(avatarSize)
             .clip(CircleShape)
+            .background(colors.surfaceGlass)
             .border(width = borders.widthThin, color = colors.borderGlassStrong, shape = CircleShape),
     ) {
         LandscapistImage(
-            imageModel = { imageUrl },
-            modifier   = Modifier
+            imageModel   = { imageUrl },
+            modifier     = Modifier
                 .fillMaxSize()
+                .padding(borders.widthThin)
                 .clip(CircleShape),
             imageOptions = ImageOptions(
                 contentScale       = ContentScale.Crop,
@@ -93,13 +94,13 @@ fun LindaAvatar(
             },
             failure = {
                 Box(
-                    modifier          = Modifier
+                    modifier         = Modifier
                         .fillMaxSize()
                         .background(colors.surfaceGlass),
-                    contentAlignment  = Alignment.Center,
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector        = Icons.Default.Person,
+                        imageVector        = LindaIcons.Default.Profile,
                         contentDescription = null,
                         tint               = colors.textMuted,
                         modifier           = Modifier.size(avatarSize / 2),
@@ -111,35 +112,68 @@ fun LindaAvatar(
 }
 
 // ─────────────────────────────────────────────────────────────
+// LindaAvatarGroup — horizontal stack of overlapping avatars.
+//
+// Slot-based DSL: call [LindaAvatarGroupScope.LindaAvatar] inside
+// the content lambda. The group owns the overlap spacing; the caller
+// is responsible for each avatar's imageUrl, size, and description.
+//
+// Usage:
+//   LindaAvatarGroup {
+//       LindaAvatar(imageUrl = "https://…", size = AvatarSize.LG)
+//       LindaAvatar(imageUrl = "https://…", size = AvatarSize.LG)
+//   }
+// ─────────────────────────────────────────────────────────────
+
+// ── Scope interface ───────────────────────────────────────────
+
+/** DSL scope — call [LindaAvatar] inside [LindaAvatarGroup]'s content lambda. */
+interface LindaAvatarGroupScope {
+    /**
+     * Renders a single avatar inside the group.
+     *
+     * @param imageUrl            Remote or local image URL.
+     * @param size                Diameter preset for this avatar.
+     * @param contentDescription  Accessibility description.
+     */
+    @Composable
+    fun LindaAvatar(
+        imageUrl          : String,
+        size              : AvatarSize = AvatarSize.MD,
+        contentDescription: String?    = null,
+    )
+}
+
+// ── Root composable ───────────────────────────────────────────
 
 /**
- * LindaAvatarGroup — a horizontal stack of overlapping [LindaAvatar]s.
- *
- * @param imageUrls List of image URLs. Capped at [max].
- * @param modifier  Modifier applied to the Row container.
- * @param max       Maximum number of avatars displayed.
- * @param size      Size preset applied to all avatars.
+ * @param modifier Optional layout modifier.
+ * @param content  DSL lambda — call [LindaAvatarGroupScope.LindaAvatar] inside.
  */
 @Composable
 fun LindaAvatarGroup(
-    imageUrls: List<String>,
-    modifier : Modifier   = Modifier,
-    max      : Int        = 3,
-    size     : AvatarSize = AvatarSize.MD,
+    modifier: Modifier = Modifier,
+    content : @Composable LindaAvatarGroupScope.() -> Unit,
 ) {
-    val displayUrls = imageUrls.take(max)
-
     Row(
         modifier              = modifier,
         horizontalArrangement = Arrangement.spacedBy((-8).dp),
     ) {
-        displayUrls.forEachIndexed { index, url ->
-            LindaAvatar(
-                imageUrl = url,
-                size     = size,
-                modifier = Modifier.offset(x = (index * (-8)).dp),
-            )
+        val scope = object : LindaAvatarGroupScope {
+            @Composable
+            override fun LindaAvatar(
+                imageUrl          : String,
+                size              : AvatarSize,
+                contentDescription: String?,
+            ) {
+                // Delegates to the top-level LindaAvatar composable above.
+                com.jaarvi.ui.linda.components.level1.LindaAvatar(
+                    imageUrl           = imageUrl,
+                    size               = size,
+                    contentDescription = contentDescription,
+                )
+            }
         }
+        scope.content()
     }
 }
-

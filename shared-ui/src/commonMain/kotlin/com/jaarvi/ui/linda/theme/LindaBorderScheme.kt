@@ -11,31 +11,22 @@ import androidx.compose.ui.unit.dp
 
 @Immutable
 data class LindaBorderScheme(
-    // ── Corner Radii ─────────────────────────────────────────
-    /** 8 dp — small inputs, chips */
-    val radiusSm: Dp,
-    /** 12 dp — buttons, badges */
-    val radiusMd: Dp,
-    /** 16 dp — cards, sheets */
-    val radiusLg: Dp,
-    /** 24 dp — bottom sheets, large panels */
-    val radiusXl: Dp,
-    /** 9999 dp — fully-circular / pill shapes */
-    val radiusFull: Dp,
 
-    // ── Stroke Widths ────────────────────────────────────────
-    /** 1 dp — standard thin border */
-    val widthThin: Dp,
-    /** 2 dp — emphasis border */
-    val widthMedium: Dp,
-    /** 4 dp — strong border (e.g. FAB inner ring) */
-    val widthThick: Dp,
+    // ── Corner radii ─────────────────────────────────────────
+    val radiusSm  : Dp,   //  8 dp — inputs, chips
+    val radiusMd  : Dp,   // 12 dp — buttons, badges
+    val radiusLg  : Dp,   // 16 dp — cards, sheets
+    val radiusXl  : Dp,   // 24 dp — bottom sheets, large panels
+    val radiusFull: Dp,   // 9999 dp — pill / fully-circular
+
+    // ── Stroke widths ────────────────────────────────────────
+    val widthThin  : Dp,   // 1 dp — standard thin border
+    val widthMedium: Dp,   // 2 dp — emphasis border
+    val widthThick : Dp,   // 4 dp — strong border (e.g. FAB inner ring)
 )
 
 // ── Composition Local ─────────────────────────────────────────
-val LocalLindaBorderScheme = compositionLocalOf<LindaBorderScheme> {
-    LindaDefaultBorderScheme
-}
+val LocalLindaBorderScheme = compositionLocalOf<LindaBorderScheme> { LindaDefaultBorderScheme }
 
 // ── Defaults ─────────────────────────────────────────────────
 val LindaDefaultBorderScheme = LindaBorderScheme(

@@ -3,6 +3,8 @@ package com.jaarvi.ui.linda.components.level1
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -10,60 +12,113 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import com.jaarvi.ui.linda.theme.LindaTheme
 
 // ─────────────────────────────────────────────────────────────
-// LindaCard variants
+// LindaCard — LEVEL 1
+//
+// Reusable glassmorphic card container. Handles surface colour,
+// border, corner shape, shadow, and content padding so callers
+// never repeat these modifiers manually.
+//
+// Shadow behaviour:
+//   glowColor == null              → black card-elevation drop shadow
+//   glowColor == Color.Transparent → no shadow at all
+//   glowColor == colors.glowLime   → coloured glow halo
+//
+// Shape defaults:
+//   null   → RoundedCornerShape(borders.radiusLg)  — group/content card
+//   pass a Shape explicitly to use a different radius (e.g. radiusMd for list items)
+//
+// Usage examples:
+//   // Standard content card
+//   LindaCard { Column { … } }
+//
+//   // Light-glass surface, no shadow
+//   LindaCard(variant = CardVariant.GLASS_LIGHT, glowColor = Color.Transparent) { … }
+//
+//   // List-item card, strong border, lime glow when complete
+//   LindaCard(
+//       shape          = RoundedCornerShape(LindaTheme.borders.radiusMd),
+//       glowColor      = if (done) LindaTheme.colors.glowLime else Color.Transparent,
+//       borderColor    = LindaTheme.colors.borderGlassStrong,
+//       contentPadding = PaddingValues(horizontal = spacing.lg, vertical = spacing.md),
+//   ) { … }
 // ─────────────────────────────────────────────────────────────
 
+// ── Surface variant ───────────────────────────────────────────
+
+/** Controls the background opacity of the card surface. */
 enum class CardVariant {
-    /** Standard glass card surface (~10% white). */
+    /** Standard glass surface — ~10 % white. */
     GLASS,
-    /** Lighter glass card surface (~5% white). */
+    /** Lighter glass surface — ~5 % white. */
     GLASS_LIGHT,
 }
 
-// ─────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────
 
 /**
- * LindaCard — glassmorphic container for grouped content.
- *
- * @param variant  [CardVariant.GLASS] or [CardVariant.GLASS_LIGHT].
- * @param content  Slot for card body.
+ * @param modifier       Modifier applied to the outer card container.
+ * @param variant        Surface opacity — [CardVariant.GLASS] or [CardVariant.GLASS_LIGHT].
+ * @param shape          Corner shape. `null` → `RoundedCornerShape(borders.radiusLg)`.
+ * @param glowColor      Shadow colour. `null` → black card-elevation shadow.
+ *                       Pass `Color.Transparent` to suppress all shadow.
+ * @param borderColor    Border colour. `null` → `colors.borderGlass`.
+ * @param backgroundColor Explicit background fill. `null` → uses [variant] default.
+ *                        Use this to pass `colors.surfaceGlass.copy(alpha = 0.85f)` etc.
+ * @param contentPadding Inner padding. `null` → `spacing.xxl` on all sides.
+ * @param content        Content placed inside the card's [BoxScope].
  */
 @Composable
 fun LindaCard(
-    modifier: Modifier    = Modifier,
-    variant : CardVariant = CardVariant.GLASS,
-    content : @Composable () -> Unit,
+    modifier        : Modifier       = Modifier,
+    variant         : CardVariant    = CardVariant.GLASS,
+    shape           : Shape?         = null,
+    glowColor       : Color?         = null,
+    borderColor     : Color?         = null,
+    backgroundColor : Color?         = null,
+    contentPadding  : PaddingValues? = null,
+    content         : @Composable BoxScope.() -> Unit,
 ) {
     val colors  = LindaTheme.colors
     val borders = LindaTheme.borders
-    val shadow  = LindaTheme.shadow
     val spacing = LindaTheme.spacing
+    val shadow  = LindaTheme.shadow
 
-    val bgColor = when (variant) {
+    val resolvedShape  : Shape         = shape          ?: RoundedCornerShape(borders.radiusLg)
+    val resolvedBorder : Color         = borderColor    ?: colors.borderGlass
+    val resolvedPadding: PaddingValues = contentPadding ?: PaddingValues(spacing.xxl)
+    val bgColor        : Color         = backgroundColor ?: when (variant) {
         CardVariant.GLASS       -> colors.surfaceGlass
         CardVariant.GLASS_LIGHT -> colors.surfaceGlassLight
     }
-    val shape = RoundedCornerShape(borders.radiusLg)
-    val shadowAlpha = shadow.cardShadowAlpha
+
+    // Resolve shadow modifier
+    val shadowMod: Modifier = when {
+        glowColor == Color.Transparent -> Modifier
+        glowColor != null -> Modifier.shadow(
+            elevation    = shadow.glowElevation,
+            shape        = resolvedShape,
+            ambientColor = glowColor,
+            spotColor    = glowColor,
+        )
+        else -> Modifier.shadow(
+            elevation    = shadow.cardElevation,
+            shape        = resolvedShape,
+            ambientColor = Color.Black.copy(alpha = shadow.cardShadowAlpha),
+            spotColor    = Color.Black.copy(alpha = shadow.cardShadowAlpha),
+        )
+    }
 
     Box(
         modifier = modifier
-            .shadow(
-                elevation    = shadow.cardElevation,
-                shape        = shape,
-                ambientColor = Color.Black.copy(alpha = shadowAlpha),
-                spotColor    = Color.Black.copy(alpha = shadowAlpha),
-            )
-            .clip(shape)
-            .background(color = bgColor, shape = shape)
-            .border(width = borders.widthThin, color = colors.borderGlass, shape = shape),
-    ) {
-        Box(modifier = Modifier.padding(spacing.xxl)) {
-            content()
-        }
-    }
+            .then(shadowMod)
+            .clip(resolvedShape)
+            .background(color = bgColor, shape = resolvedShape)
+            .border(width = borders.widthThin, color = resolvedBorder, shape = resolvedShape)
+            .padding(resolvedPadding),
+        content = content,
+    )
 }
-

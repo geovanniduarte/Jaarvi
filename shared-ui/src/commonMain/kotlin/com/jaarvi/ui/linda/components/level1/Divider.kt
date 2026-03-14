@@ -11,30 +11,30 @@ import androidx.compose.ui.Modifier
 import com.jaarvi.ui.linda.theme.LindaTheme
 
 // ─────────────────────────────────────────────────────────────
-// LindaDivider orientation variants
+// LindaDivider — LEVEL 1
+//
+// Thin glass-tinted separator line, horizontal or vertical.
+// Uses borderGlass by default; pass strong = true for the
+// higher-contrast borderGlassStrong variant.
 // ─────────────────────────────────────────────────────────────
+
+// ── Orientation ───────────────────────────────────────────────
 
 enum class DividerOrientation {
     HORIZONTAL,
     VERTICAL,
 }
 
-// ─────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────
 
 /**
- * LindaDivider — thin glass-tinted separator line.
- *
- * Uses [LindaColorScheme.borderGlass] by default, matching card and
- * nav-bar borders. Swap for [LindaColorScheme.borderGlassStrong] via
- * [strong] for higher-contrast contexts.
- *
- * @param orientation  [DividerOrientation.HORIZONTAL] (default) or
- *                     [DividerOrientation.VERTICAL].
- * @param strong       When true uses the stronger glass border colour.
+ * @param modifier    Optional layout modifier.
+ * @param orientation [DividerOrientation.HORIZONTAL] (default) or [DividerOrientation.VERTICAL].
+ * @param strong      When true uses [colors.borderGlassStrong] instead of [colors.borderGlass].
  */
 @Composable
 fun LindaDivider(
-    modifier    : Modifier          = Modifier,
+    modifier    : Modifier           = Modifier,
     orientation : DividerOrientation = DividerOrientation.HORIZONTAL,
     strong      : Boolean            = false,
 ) {

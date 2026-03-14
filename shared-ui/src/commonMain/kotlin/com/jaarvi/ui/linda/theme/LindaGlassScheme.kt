@@ -7,39 +7,29 @@ import androidx.compose.ui.unit.dp
 
 // ─────────────────────────────────────────────────────────────
 // LindaGlassScheme — glassmorphism effect tokens.
-// Note: Compose does not expose a true CSS-style backdrop-blur API
-// on all targets; the blur values here document the design intent
-// and are used where the platform supports it (e.g. RenderEffect
-// on API 31+, or via Modifier.blur() for foreground blur).
+// Blur values document design intent. Use Modifier.blur() or
+// RenderEffect (API 31+) where the platform supports it.
 // ─────────────────────────────────────────────────────────────
 
 @Immutable
 data class LindaGlassScheme(
+
     // ── Blur radii ────────────────────────────────────────────
-    /** Light glass blur — 6 dp. Used on cards and nav items. */
-    val blurLight: Dp,
-    /** Heavy glass blur — 12 dp. Used on modals and sheets. */
-    val blurHeavy: Dp,
-    /** Background glow blur — 40 dp. Used on ambient orbs. */
-    val blurAmbient: Dp,
+    val blurLight  : Dp,   //  6 dp — cards, nav items
+    val blurHeavy  : Dp,   // 12 dp — modals, sheets
+    val blurAmbient: Dp,   // 40 dp — ambient glow orbs
 
     // ── Background opacity (0f–1f) ────────────────────────────
-    /** Surface glass background opacity — 0.10 (~rgba 255,255,255,0.10). */
-    val bgOpacityHeavy: Float,
-    /** Light surface glass background opacity — 0.05. */
-    val bgOpacityLight: Float,
+    val bgOpacityHeavy: Float,   // 0.10 — surfaceGlass
+    val bgOpacityLight: Float,   // 0.05 — surfaceGlassLight
 
     // ── Border opacity (0f–1f) ────────────────────────────────
-    /** Standard glass border opacity — 0.20. */
-    val borderOpacity: Float,
-    /** Strong glass border opacity — 0.30. */
-    val borderOpacityStrong: Float,
+    val borderOpacity      : Float,   // 0.20 — borderGlass
+    val borderOpacityStrong: Float,   // 0.30 — borderGlassStrong
 )
 
 // ── Composition Local ─────────────────────────────────────────
-val LocalLindaGlassScheme = compositionLocalOf<LindaGlassScheme> {
-    LindaDefaultGlassScheme
-}
+val LocalLindaGlassScheme = compositionLocalOf<LindaGlassScheme> { LindaDefaultGlassScheme }
 
 // ── Defaults ─────────────────────────────────────────────────
 val LindaDefaultGlassScheme = LindaGlassScheme(

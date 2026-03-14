@@ -12,16 +12,21 @@ import androidx.compose.ui.Modifier
 import com.jaarvi.ui.linda.theme.LindaTheme
 
 // ─────────────────────────────────────────────────────────────
+// LindaStatCard — LEVEL 1
+//
+// Compact key/value display for trip statistics.
+// Renders a muted [label] above a large [value] and an optional
+// [subtext] suffix. Typically used in rows inside a [LindaCard].
+//
+// LindaStatsRow — evenly-distributed row wrapper for [LindaStatCard]
+// items. Provide each stat as a [LindaStatCard] with Modifier.weight(1f).
+// ─────────────────────────────────────────────────────────────
 
 /**
- * LindaStatCard — compact key/value display for trip statistics.
- *
- * Renders a muted [label] above a large [value] and optional [subtext]
- * suffix. Typically used in rows inside a [LindaCard].
- *
- * @param label    Descriptor text (uppercased automatically).
- * @param value    Primary numeric or textual value.
- * @param subtext  Optional dimmed suffix after [value] (e.g. "/ $5k").
+ * @param label   Descriptor text — uppercased automatically.
+ * @param value   Primary numeric or textual value.
+ * @param modifier Optional layout modifier.
+ * @param subtext Optional dimmed suffix after [value] (e.g. "/ $5k").
  */
 @Composable
 fun LindaStatCard(
@@ -64,8 +69,7 @@ fun LindaStatCard(
 // ─────────────────────────────────────────────────────────────
 
 /**
- * LindaStatsRow — evenly-distributed row wrapper for [LindaStatCard] items.
- * Provide each stat as a [LindaStatCard] with `Modifier.weight(1f)`.
+ * Evenly-distributed row wrapper for [LindaStatCard] items.
  */
 @Composable
 fun LindaStatsRow(
@@ -78,4 +82,3 @@ fun LindaStatsRow(
         content               = content,
     )
 }
-

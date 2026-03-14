@@ -9,12 +9,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import com.jaarvi.ui.linda.components.level2.DestinationStatus
 import com.jaarvi.ui.linda.theme.LindaTheme
 
 // ─────────────────────────────────────────────────────────────
-// StatusDotSize variants
+// LindaStatusIndicatorDot — LEVEL 1
+//
+// Small circular status badge. Colour and glow are driven by
+// [DestinationStatus]:
+//   ACTIVE    → statusActive (lime) + lime glow
+//   COMPLETED → statusCompleted (gold) + gold glow
+//   PLANNED   → statusPlanned (white 60%), no glow
 // ─────────────────────────────────────────────────────────────
+
+// ── Status enum ───────────────────────────────────────────────
+
+enum class DestinationStatus {
+    /** Currently active / in-progress leg of the trip. */
+    ACTIVE,
+    /** Leg already completed. */
+    COMPLETED,
+    /** Upcoming planned leg. */
+    PLANNED,
+}
+
+// ── Size preset ───────────────────────────────────────────────
 
 enum class StatusDotSize {
     SM,  //  6 dp
@@ -22,18 +40,12 @@ enum class StatusDotSize {
     LG,  // 12 dp
 }
 
-// ─────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────
 
 /**
- * LindaStatusIndicatorDot — small circular status badge.
- *
- * Colour and glow are driven by [DestinationStatus]:
- *  - [DestinationStatus.ACTIVE]    → lime + lime glow
- *  - [DestinationStatus.COMPLETED] → gold + gold glow
- *  - [DestinationStatus.PLANNED]   → muted white, no glow
- *
- * @param status  Trip-leg status that determines the dot colour.
- * @param size    Diameter preset.
+ * @param status   Trip-leg status that determines dot colour and glow.
+ * @param modifier Optional layout modifier.
+ * @param size     Diameter preset.
  */
 @Composable
 fun LindaStatusIndicatorDot(
@@ -69,14 +81,12 @@ fun LindaStatusIndicatorDot(
         modifier = modifier
             .size(diameter)
             .then(
-                if (shouldGlow) {
-                    Modifier.shadow(
-                        elevation    = shadow.glowElevation,
-                        shape        = CircleShape,
-                        ambientColor = glowColor,
-                        spotColor    = glowColor,
-                    )
-                } else Modifier,
+                if (shouldGlow) Modifier.shadow(
+                    elevation    = shadow.glowElevation,
+                    shape        = CircleShape,
+                    ambientColor = glowColor,
+                    spotColor    = glowColor,
+                ) else Modifier
             )
             .clip(CircleShape)
             .background(color = color, shape = CircleShape),

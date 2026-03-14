@@ -9,11 +9,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.jaarvi.ui.linda.theme.LindaTheme
 
 // ─────────────────────────────────────────────────────────────
-// LindaText — typography wrapper composables.
+// LindaText — LEVEL 1
 //
-// Each function corresponds to one slot in LindaTypographyScheme and
-// automatically applies the correct color from LindaColorScheme.
-// Pass an explicit [color] to override.
+// Typography wrapper composables. Each function corresponds to
+// one token in LindaTypographyScheme and automatically applies
+// the appropriate default colour from LindaColorScheme.
+// Pass an explicit [color] to override the default.
 //
 // Design-system hierarchy:
 //   H1  24 sp ExtraBold  → LindaTextH1
@@ -21,7 +22,7 @@ import com.jaarvi.ui.linda.theme.LindaTheme
 //   H3  18 sp Bold       → LindaTextH3
 //   Body 16 sp Regular   → LindaTextBody
 //   Small / BodyMedium   → LindaTextSmall
-//   Micro 12 sp          → LindaTextMicro
+//   Micro 12 sp Regular  → LindaTextMicro
 //   Label 10 sp Bold ALL CAPS → LindaTextLabel
 // ─────────────────────────────────────────────────────────────
 
@@ -30,15 +31,15 @@ import com.jaarvi.ui.linda.theme.LindaTheme
 private fun LindaTextBase(
     text    : String,
     style   : TextStyle,
-    color   : Color       = Color.Unspecified,
-    modifier: Modifier    = Modifier,
-    maxLines: Int         = Int.MAX_VALUE,
+    color   : Color        = Color.Unspecified,
+    modifier: Modifier     = Modifier,
+    maxLines: Int          = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip,
 ) {
-    val resolvedStyle = if (color != Color.Unspecified) style.copy(color = color) else style
+    val resolved = if (color != Color.Unspecified) style.copy(color = color) else style
     Text(
         text     = text,
-        style    = resolvedStyle,
+        style    = resolved,
         modifier = modifier,
         maxLines = maxLines,
         overflow = overflow,
@@ -47,9 +48,7 @@ private fun LindaTextBase(
 
 // ── H1 ────────────────────────────────────────────────────────
 
-/**
- * H1 — 24 sp ExtraBold. Default color: [LindaColorScheme.textPrimary].
- */
+/** H1 — 24 sp ExtraBold. Default color: [LindaColorScheme.textPrimary]. */
 @Composable
 fun LindaTextH1(
     text    : String,
@@ -57,17 +56,14 @@ fun LindaTextH1(
     color   : Color    = Color.Unspecified,
     maxLines: Int      = Int.MAX_VALUE,
 ) {
-    val typo   = LindaTheme.typography
-    val colors = LindaTheme.colors
-    val resolvedColor = if (color != Color.Unspecified) color else colors.textPrimary
+    val typo          = LindaTheme.typography
+    val resolvedColor = if (color != Color.Unspecified) color else LindaTheme.colors.textPrimary
     LindaTextBase(text, typo.h1, resolvedColor, modifier, maxLines)
 }
 
 // ── H2 ────────────────────────────────────────────────────────
 
-/**
- * H2 — 20 sp Bold. Default color: [LindaColorScheme.textPrimary].
- */
+/** H2 — 20 sp Bold. Default color: [LindaColorScheme.textPrimary]. */
 @Composable
 fun LindaTextH2(
     text    : String,
@@ -75,17 +71,14 @@ fun LindaTextH2(
     color   : Color    = Color.Unspecified,
     maxLines: Int      = Int.MAX_VALUE,
 ) {
-    val typo   = LindaTheme.typography
-    val colors = LindaTheme.colors
-    val resolvedColor = if (color != Color.Unspecified) color else colors.textPrimary
+    val typo          = LindaTheme.typography
+    val resolvedColor = if (color != Color.Unspecified) color else LindaTheme.colors.textPrimary
     LindaTextBase(text, typo.h2, resolvedColor, modifier, maxLines)
 }
 
 // ── H3 ────────────────────────────────────────────────────────
 
-/**
- * H3 — 18 sp Bold. Default color: [LindaColorScheme.textPrimary].
- */
+/** H3 — 18 sp Bold. Default color: [LindaColorScheme.textPrimary]. */
 @Composable
 fun LindaTextH3(
     text    : String,
@@ -93,36 +86,30 @@ fun LindaTextH3(
     color   : Color    = Color.Unspecified,
     maxLines: Int      = Int.MAX_VALUE,
 ) {
-    val typo   = LindaTheme.typography
-    val colors = LindaTheme.colors
-    val resolvedColor = if (color != Color.Unspecified) color else colors.textPrimary
+    val typo          = LindaTheme.typography
+    val resolvedColor = if (color != Color.Unspecified) color else LindaTheme.colors.textPrimary
     LindaTextBase(text, typo.h3, resolvedColor, modifier, maxLines)
 }
 
 // ── Body ──────────────────────────────────────────────────────
 
-/**
- * Body — 16 sp Regular. Default color: [LindaColorScheme.textSecondary].
- */
+/** Body — 16 sp Regular. Default color: [LindaColorScheme.textSecondary]. */
 @Composable
 fun LindaTextBody(
     text    : String,
-    modifier: Modifier = Modifier,
-    color   : Color    = Color.Unspecified,
-    maxLines: Int      = Int.MAX_VALUE,
+    modifier: Modifier     = Modifier,
+    color   : Color        = Color.Unspecified,
+    maxLines: Int          = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip,
 ) {
-    val typo   = LindaTheme.typography
-    val colors = LindaTheme.colors
-    val resolvedColor = if (color != Color.Unspecified) color else colors.textSecondary
+    val typo          = LindaTheme.typography
+    val resolvedColor = if (color != Color.Unspecified) color else LindaTheme.colors.textSecondary
     LindaTextBase(text, typo.body, resolvedColor, modifier, maxLines, overflow)
 }
 
 // ── Small / BodyMedium ────────────────────────────────────────
 
-/**
- * Small — 14 sp Medium. Default color: [LindaColorScheme.textSecondary].
- */
+/** Small — 14 sp Medium. Default color: [LindaColorScheme.textSecondary]. */
 @Composable
 fun LindaTextSmall(
     text    : String,
@@ -130,17 +117,14 @@ fun LindaTextSmall(
     color   : Color    = Color.Unspecified,
     maxLines: Int      = Int.MAX_VALUE,
 ) {
-    val typo   = LindaTheme.typography
-    val colors = LindaTheme.colors
-    val resolvedColor = if (color != Color.Unspecified) color else colors.textSecondary
+    val typo          = LindaTheme.typography
+    val resolvedColor = if (color != Color.Unspecified) color else LindaTheme.colors.textSecondary
     LindaTextBase(text, typo.bodyMedium, resolvedColor, modifier, maxLines)
 }
 
 // ── Micro ─────────────────────────────────────────────────────
 
-/**
- * Micro — 12 sp Regular. Default color: [LindaColorScheme.textMuted].
- */
+/** Micro — 12 sp Regular. Default color: [LindaColorScheme.textMuted]. */
 @Composable
 fun LindaTextMicro(
     text    : String,
@@ -148,9 +132,8 @@ fun LindaTextMicro(
     color   : Color    = Color.Unspecified,
     maxLines: Int      = Int.MAX_VALUE,
 ) {
-    val typo   = LindaTheme.typography
-    val colors = LindaTheme.colors
-    val resolvedColor = if (color != Color.Unspecified) color else colors.textMuted
+    val typo          = LindaTheme.typography
+    val resolvedColor = if (color != Color.Unspecified) color else LindaTheme.colors.textMuted
     LindaTextBase(text, typo.micro, resolvedColor, modifier, maxLines)
 }
 
@@ -166,8 +149,7 @@ fun LindaTextLabel(
     modifier: Modifier = Modifier,
     color   : Color    = Color.Unspecified,
 ) {
-    val typo   = LindaTheme.typography
-    val colors = LindaTheme.colors
-    val resolvedColor = if (color != Color.Unspecified) color else colors.textLabel
+    val typo          = LindaTheme.typography
+    val resolvedColor = if (color != Color.Unspecified) color else LindaTheme.colors.textLabel
     LindaTextBase(text.uppercase(), typo.label, resolvedColor, modifier)
 }

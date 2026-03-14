@@ -6,11 +6,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 // ─────────────────────────────────────────────────────────────
-// LindaSizeScheme — component-size and icon-size tokens.
+// LindaSizeScheme — component & icon size tokens.
 // ─────────────────────────────────────────────────────────────
 
 @Immutable
 data class LindaSizeScheme(
+
     // ── Icon sizes ────────────────────────────────────────────
     val iconXs: Dp,   // 12 dp
     val iconSm: Dp,   // 16 dp
@@ -19,9 +20,9 @@ data class LindaSizeScheme(
     val iconXl: Dp,   // 32 dp
 
     // ── Avatar sizes ─────────────────────────────────────────
-    val avatarSm: Dp,  // 32 dp
-    val avatarMd: Dp,  // 36 dp
-    val avatarLg: Dp,  // 48 dp
+    val avatarSm: Dp,   // 32 dp
+    val avatarMd: Dp,   // 36 dp
+    val avatarLg: Dp,   // 48 dp
 
     // ── Button heights ────────────────────────────────────────
     val buttonHeightSm: Dp,   // 32 dp
@@ -29,30 +30,30 @@ data class LindaSizeScheme(
     val buttonHeightLg: Dp,   // 52 dp
 
     // ── FAB ───────────────────────────────────────────────────
-    /** Diameter of the main Floating Action Button. */
-    val fabSize: Dp,          // 64 dp
-    /** Diameter of a mini FAB. */
-    val fabMiniSize: Dp,      // 48 dp
+    val fabSize    : Dp,   // 64 dp — main FAB diameter
+    val fabMiniSize: Dp,   // 48 dp — mini FAB diameter
 
     // ── Nav bar ───────────────────────────────────────────────
     val navBarIconSize: Dp,   // 20 dp
 
     // ── Destination card image ────────────────────────────────
-    val destinationImageHeight: Dp,  // 208 dp
+    val destinationImageHeight: Dp,   // 208 dp
 
     // ── Status indicator dot ──────────────────────────────────
-    val statusDotSm: Dp,   // 6 dp
-    val statusDotMd: Dp,   // 8 dp
+    val statusDotSm: Dp,   //  6 dp
+    val statusDotMd: Dp,   //  8 dp
     val statusDotLg: Dp,   // 12 dp
 
     // ── Divider ───────────────────────────────────────────────
     val dividerThickness: Dp,   // 1 dp
+
+    // ── Step indicator circles (LindaStepIndicator) ───────────
+    val stepCircleSm: Dp,   // 24 dp — pending step circle
+    val stepCircleLg: Dp,   // 28 dp — active step circle
 )
 
 // ── Composition Local ─────────────────────────────────────────
-val LocalLindaSizeScheme = compositionLocalOf<LindaSizeScheme> {
-    LindaDefaultSizeScheme
-}
+val LocalLindaSizeScheme = compositionLocalOf<LindaSizeScheme> { LindaDefaultSizeScheme }
 
 // ── Defaults ─────────────────────────────────────────────────
 val LindaDefaultSizeScheme = LindaSizeScheme(
@@ -82,4 +83,7 @@ val LindaDefaultSizeScheme = LindaSizeScheme(
     statusDotLg            = 12.dp,
 
     dividerThickness       = 1.dp,
+
+    stepCircleSm           = 24.dp,
+    stepCircleLg           = 28.dp,
 )

@@ -35,9 +35,9 @@ import com.skydoves.landscapist.placeholder.shimmer.Shimmer
 import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 
 // ─────────────────────────────────────────────────────────────
-// LindaDestinationCard — LEVEL 2
+// LindaDestinationCardOld — LEVEL 2
 //
-// Hero card for a trip leg / city.
+// Hero card for a trip leg / city. Migrated from SunDestinationCard.
 // Uses [LindaCard] as its outer container.
 //
 // Shows a full-bleed [imageUrl] with warm + dark gradient overlays,
@@ -62,7 +62,7 @@ import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
  * @param bottomContent Optional slot rendered beneath the image panel.
  */
 @Composable
-fun LindaDestinationCard(
+fun LindaDestinationCardOld(
     imageUrl     : String,
     title        : String,
     duration     : String,
@@ -89,7 +89,7 @@ fun LindaDestinationCard(
         DestinationStatus.PLANNED   -> Color.Transparent
     }
     // PLANNED cards are slightly dimmed
-    val cardAlpha = if (status == DestinationStatus.PLANNED) 0.85f else 1f
+    val cardAlpha = if (status == DestinationStatus.PLANNED) 0.4f else 0.6f
 
     // ── LindaCard owns the glassmorphic surface ───────────────
     // contentPadding = 0.dp so the hero image fills edge-to-edge.

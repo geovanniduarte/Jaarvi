@@ -4,26 +4,21 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 
 // ─────────────────────────────────────────────────────────────
-// Backward-compatibility wrapper.
+// Theme.kt — backward-compatibility wrapper.
 //
-// New code should use LindaTheme { } directly.
-// This wrapper is kept so that existing call-sites (e.g. MainActivity)
-// continue to compile while migrating incrementally.
+// New code must use LindaTheme { } directly.
+// TravelAppTheme is kept only for existing call-sites migrating
+// incrementally from the old SunTheme / Material3 setup.
 //
-// TravelAppTheme automatically selects the dark or — once defined —
-// the light color scheme based on the system setting.
+// Extend: provide LindaLightColorScheme when darkTheme == false
+// once a light palette is designed.
 // ─────────────────────────────────────────────────────────────
 
 @Composable
 fun TravelAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit,
+    content  : @Composable () -> Unit,
 ) {
-    // Extend here: provide LindaLightColorScheme when darkTheme == false.
     val colors = if (darkTheme) LindaDarkColorScheme else LindaDarkColorScheme
-
-    LindaTheme(
-        colors = colors,
-        content = content,
-    )
+    LindaTheme(colors = colors, content = content)
 }

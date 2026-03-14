@@ -11,28 +11,18 @@ import androidx.compose.ui.unit.dp
 
 @Immutable
 data class LindaSpacingScheme(
-    /** 4 dp */
-    val xs: Dp,
-    /** 8 dp */
-    val sm: Dp,
-    /** 12 dp */
-    val md: Dp,
-    /** 16 dp */
-    val lg: Dp,
-    /** 20 dp */
-    val xl: Dp,
-    /** 24 dp */
-    val xxl: Dp,
-    /** 32 dp */
-    val xxxl: Dp,
-    /** 48 dp */
-    val xxxxl: Dp,
+    val xs   : Dp,   //  4 dp
+    val sm   : Dp,   //  8 dp
+    val md   : Dp,   // 12 dp
+    val lg   : Dp,   // 16 dp
+    val xl   : Dp,   // 20 dp
+    val xxl  : Dp,   // 24 dp
+    val xxxl : Dp,   // 32 dp
+    val xxxxl: Dp,   // 48 dp
 )
 
 // ── Composition Local ─────────────────────────────────────────
-val LocalLindaSpacingScheme = compositionLocalOf<LindaSpacingScheme> {
-    LindaDefaultSpacingScheme
-}
+val LocalLindaSpacingScheme = compositionLocalOf<LindaSpacingScheme> { LindaDefaultSpacingScheme }
 
 // ── Defaults ─────────────────────────────────────────────────
 val LindaDefaultSpacingScheme = LindaSpacingScheme(
