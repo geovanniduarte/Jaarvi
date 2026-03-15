@@ -530,6 +530,14 @@ fun TravelAppScreen2() {
                                     LindaAvatar(imageUrl = "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=100", size = AvatarSize.LG)
                                 }
                                 LindaTextMicro(text = "Stacked")
+                                LindaAvatarGroup {
+                                    LindaAvatar(imageUrl = "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=100", size = AvatarSize.LG)
+                                    LindaAvatar(imageUrl = "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=100", size = AvatarSize.LG)
+                                    LindaAvatar(imageUrl = "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=100", size = AvatarSize.LG)
+                                    LindaAvatar(imageUrl = "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=100", size = AvatarSize.LG)
+                                    LindaAvatar(imageUrl = "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=100", size = AvatarSize.LG)
+
+                                }
                             }
                         }
                     }

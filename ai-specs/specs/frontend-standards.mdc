@@ -134,6 +134,19 @@ If the project uses the common CMP template, the UI module may be named `compose
   - Reusable “card” components for Today Mode, steps, and playbooks.
 - N/A: **Bootstrap / React Bootstrap** (this is not a web React app).
 
+### Linda Design System — First-Choice Rule
+- **Linda components must be the first option** for every screen element in `shared-ui/`.
+  - Before writing any custom composable, evaluate whether an existing Linda component from `shared-ui/src/commonMain/kotlin/com/jaarvi/ui/linda/` covers the need.
+  - Match each UI element against Linda's component catalog (buttons, cards, inputs, typography, icons, layout primitives, etc.).
+  - Only build a custom composable when **no Linda component satisfies the specification**; document the reason in a comment.
+- **Mandatory evaluation checklist** per screen element:
+  1. Does Linda expose a component with the required visual and behavioral contract?
+  2. Can theming, modifiers, or slots on an existing Linda component achieve the desired result?
+  3. If not, is a new Linda component the right abstraction (generalizable), or is it truly screen-specific?
+- **Composition over recreation**: prefer composing Linda primitives rather than reimplementing visuals from scratch.
+- **Theme tokens via Linda**: always consume color, typography, spacing, and shape through `LindaTheme` tokens; never hardcode raw values.
+- Linda component packages live under `shared-ui/src/commonMain/kotlin/com/jaarvi/ui/linda/` and are the authoritative source for the design vocabulary of the app.
+
 ### Form Handling
 - Prefer explicit state:
   - Validate as the user types when needed.

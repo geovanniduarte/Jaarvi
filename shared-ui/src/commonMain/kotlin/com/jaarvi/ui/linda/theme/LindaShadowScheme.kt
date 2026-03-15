@@ -44,6 +44,6 @@ val LindaDefaultShadowScheme = LindaShadowScheme(
     xxl               = 32.dp,
     cardElevation     = 16.dp,
     cardShadowAlpha   = 0.37f,
-    glowElevation     = 1.dp,
+    glowElevation     = 2.dp,
     fabGlowElevation  = 12.dp,
 )

@@ -100,7 +100,7 @@ fun LindaDestinationCard(
         shape           = RoundedCornerShape(borders.radiusLg),
         glowColor       = null,   // standard black card-elevation shadow
         borderColor     = colors.borderGlass,
-        backgroundColor = colors.surfaceGlass.copy(alpha = cardAlpha),
+        backgroundColor = colors.surfaceGlass.copy(LindaTheme.glass.bgOpacityLight),
         contentPadding  = PaddingValues(0.dp),
     ) {
         Column {
