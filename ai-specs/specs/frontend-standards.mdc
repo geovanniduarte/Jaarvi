@@ -153,6 +153,20 @@ If the project uses the common CMP template, the UI module may be named `compose
   - Disable primary actions during async operations.
 - TBD: form validation library decision (if any).
 
+### Multi-Step Wizard Pattern (established in mvp-03-frontend)
+
+When a flow requires 3+ sequential steps of user input:
+
+1. **Single ScreenModel owns all steps**: one `ScreenModel` manages state across every step; data collected in step N is available in step N+1 without any navigation argument passing.
+2. **Dedicated sealed event types per step**: Use `sealed class UiEvent` with nested data classes per step (e.g., `StartDateSelected`, `CountrySelected`). Common intents (e.g., `NextStep`, `PreviousStep`, `DismissError`) are shared across steps.
+3. **Computed validity gates**: Instead of running validation on demand, declare `val isStepNValid: Boolean` as a computed property on `UiState`. Buttons observe it directly.
+4. **API call on "Next", not on final submit**: When step 1 creates a server-side resource (e.g., `POST /api/trips`), call the API immediately on "Next" and store the returned ID in state. Subsequent steps use that ID.
+5. **Eager + lazy catalog loading**: Pre-fetch broad catalogs (e.g., countries) on `start()`. Load narrower subsets lazily when the parent is selected (e.g., cities per country).
+6. **Progress indicator**: Use `LindaStepIndicator` at the top of the screen. Pass `currentStep` from state; `LindaStepScope` DSL builds the labels.
+7. **DatePickerCapability**: `LindaDatePickerField` is Android-specific (uses `DatePickerDialog`). It accepts `java.time.LocalDate`; convert to/from `kotlinx.datetime.LocalDate` at the call site. For true KMP, replace with an expect/actual `DatePickerCapability`.
+8. **FlowRow for chip selections**: Use `LindaChipRow` (horizontal lazy row) with `LazyListScope` DSL to render multi-select interests. Each `LindaChip` toggles on click via an `InterestToggled` event.
+9. **DestinationDraft vs. domain model**: Wizard destinations live only in `UiState` as `DestinationDraft` (a UI-layer data class). The server `TripDestination` is fetched from the API response; only its `daysCount` and `dayOrder` are merged back into state.
+
 ### Navigation Patterns
 - Prefer a small number of top-level flows:
   - Trip setup

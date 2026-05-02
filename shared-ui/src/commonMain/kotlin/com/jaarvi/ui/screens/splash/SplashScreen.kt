@@ -14,6 +14,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import androidx.compose.material.CircularProgressIndicator
+import com.jaarvi.ui.screens.createtrip.CreateTripScreen
 import com.jaarvi.ui.screens.health.HealthScreen
 import com.jaarvi.ui.theme.JaarviTheme
 import com.jaarvi.ui.theme.Spacing
@@ -31,7 +32,7 @@ class SplashScreen : Screen {
 
         LaunchedEffect(Unit) {
             delay(2000) // 2 second splash
-            navigator.replace(HealthScreen())
+            navigator.replace(CreateTripScreen())
         }
 
         JaarviTheme {

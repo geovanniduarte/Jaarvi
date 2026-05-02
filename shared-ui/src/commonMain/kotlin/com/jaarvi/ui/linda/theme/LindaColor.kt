@@ -47,3 +47,5 @@ internal val ColorStatusActive    = Color(0xFFA3E635)   // lime   — active / i
 internal val ColorStatusCompleted = Color(0xFFF2B90D)   // gold   — completed
 internal val ColorStatusPlanned   = Color(0x99FFFFFF)   // white 60 % — planned / upcoming
 internal val ColorStatusError     = Color(0xFFEF4444)   // red    — validation error
+internal val ColorStatusInfo      = Color(0xFF3B82F6)   // blue   — informational message
+internal val ColorStatusSuccess   = Color(0xFFA3E635)   // lime   — success / confirmation

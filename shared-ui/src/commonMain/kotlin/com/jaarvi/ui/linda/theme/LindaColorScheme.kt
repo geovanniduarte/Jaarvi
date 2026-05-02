@@ -76,6 +76,10 @@ data class LindaColorScheme(
     val statusPlanned  : Color,
     /** Red — validation error. */
     val statusError    : Color,
+    /** Blue — informational message. */
+    val statusInfo     : Color,
+    /** Lime — success / confirmation. */
+    val statusSuccess  : Color,
 )
 
 // ── Composition Local ─────────────────────────────────────────
@@ -115,4 +119,6 @@ val LindaDarkColorScheme = LindaColorScheme(
     statusCompleted     = ColorStatusCompleted,
     statusPlanned       = ColorStatusPlanned,
     statusError         = ColorStatusError,
+    statusInfo          = ColorStatusInfo,
+    statusSuccess       = ColorStatusSuccess,
 )

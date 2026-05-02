@@ -938,20 +938,32 @@ CreateTripScreen (Step 3)
 
 ## Summary Table
 
-| Component | Status | File to Create |
+| Component | Status | File |
 |---|---|---|
-| `LindaHeader` | Existing | — |
-| `LindaButton` | Existing | — |
-| `LindaProgressBar` | Existing | — |
-| `LindaCard` | Existing | — |
-| `LindaBadge` | Existing | — |
-| `LindaStatCard` / `LindaStatsRow` | Existing | — |
-| `LindaStepIndicator` | **NEW** | `StepIndicator.kt` |
-| `LindaTextField` | **NEW** | `TextField.kt` |
-| `LindaDatePickerField` | **NEW** | `DatePickerField.kt` |
-| `LindaSearchBox` | **NEW** | `SearchBox.kt` |
-| `LindaStepper` | **NEW** | `Stepper.kt` |
-| `LindaDestinationCard` | **NEW** | `DestinationCard.kt` |
-| `LindaCompletion` | **NEW** | `Completion.kt` |
-| `LindaSegmentedControl` | **NEW** | `SegmentedControl.kt` |
-| `LindaCheckboxGroup` | **NEW** | `CheckboxGroup.kt` |
+| `LindaHeader` | ✅ Existing | `level2/Header.kt` |
+| `LindaButton` | ✅ Existing | `level1/Button.kt` |
+| `LindaProgressBar` | ✅ Existing | `level1/ProgressBar.kt` |
+| `LindaCard` | ✅ Existing | `level1/Card.kt` |
+| `LindaBadge` | ✅ Existing | `level1/Badge.kt` |
+| `LindaStatCard` / `LindaStatsRow` | ✅ Existing | `level1/StatCard.kt` |
+| `LindaStepIndicator` | ✅ Implemented | `level1/StepIndicator.kt` |
+| `LindaTextField` | ✅ Implemented | `level1/TextField.kt` |
+| `LindaDatePickerField` | ✅ Implemented | `level1/DatePickerField.kt` |
+| `LindaSearchBox` | ✅ Implemented | `level1/SearchBox.kt` |
+| `LindaStepper` | ✅ Implemented | `level1/Stepper.kt` |
+| `LindaDestinationCard` | ✅ Existing (old API) — new card uses `LindaRow` in wizard | `level2/DestinationCard.kt` |
+| `LindaCompletion` | ✅ Implemented | `level2/Completion.kt` |
+| `LindaSegmentedControl` | ✅ Implemented | `level1/SegmentedControl.kt` |
+| `LindaCheckboxGroup` | — Replaced by `LindaChipRow` multi-select | `level1/Chips.kt` |
+| `LindaChips` / `LindaChipRow` | ✅ Implemented | `level1/Chips.kt` |
+| `LindaTag` | ✅ Implemented | `level1/Tag.kt` |
+| `LindaRadioButton` | ✅ Implemented | `level1/RadioButton.kt` |
+| `LindaSlider` | ✅ Implemented | `level1/Slider.kt` |
+| `LindaSegmentedControl` | ✅ Implemented | `level1/SegmentedControl.kt` |
+| `LindaBudgetSlider` | ✅ Implemented | `level2/BudgetSlider.kt` |
+| `LindaItemCounter` | ✅ Implemented | `level2/ItemCounter.kt` |
+| `LindaDateSelectors` | ✅ Implemented | `level2/DateSelectors.kt` |
+| `LindaSelector` | ✅ Implemented | `level2/Selector.kt` |
+| `LindaRow` | ✅ Implemented | `level2/Row.kt` |
+
+> Updated: mvp-03-frontend implementation complete (ticket-mvp03-create-trip-wizard branch).

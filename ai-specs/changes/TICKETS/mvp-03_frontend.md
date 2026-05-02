@@ -4,7 +4,7 @@
 
 ## 1. Overview
 
-Implement the 3-step trip creation wizard (Screens 12 → 13 → 14) as a Compose Multiplatform screen targeting Android and iOS from a single shared codebase.
+Implement the 3-step trip creation wizard (Screens 12 → 13 → 14) as a Compose Multiplatform screen targeting Android and iOS from a single shared codebase based in @ai-specs/changes/TICKETS/mvp-03_frontend.md .
 
 The wizard covers:
 - **Step 1 — Basic Info**: trip name, start date, end date → `POST /api/trips`

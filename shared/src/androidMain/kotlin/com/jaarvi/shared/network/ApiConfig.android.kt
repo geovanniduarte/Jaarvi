@@ -8,5 +8,5 @@ package com.jaarvi.shared.network
  * For now, defaulting to debug localhost.
  */
 actual object ApiConfig {
-    actual val baseUrl: String = "http://192.168.1.73:30080/api"
+    actual val baseUrl: String = "http://localhost:8080/api"
 }
