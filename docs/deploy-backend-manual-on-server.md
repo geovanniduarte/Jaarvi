@@ -383,7 +383,7 @@ sleep 3
 - **`30080:80`** means: host port **30080** → service port **80** (the Service maps to the app’s container port via `targetPort`).
 - **`--address 0.0.0.0`** allows other devices on the network to connect to this Mac’s IP.
 
-**After a reboot**, this background process is gone; start the same `nohup kubectl ...` line again.
+**After a reboot**, this background process is gone; start the same `nohup kubectl ...` line again. **Full reboot order** (Docker → cluster checks → port-forward → health): see **section 16** (**Reboot**).
 
 **macOS firewall:** if **System Settings → Network → Firewall** is on and others cannot connect, you may need to allow **incoming** connections for **Terminal** (or your terminal app) or temporarily test with the firewall off to confirm. Ensure **TCP 30080** can reach the Mac from your LAN.
 
@@ -588,6 +588,82 @@ flowchart TB
 ```
 
 *Relationships that matter:* the **backend** resolves **Postgres by Service DNS** inside the cluster; **callers outside the cluster** reach the backend only via a **long-lived port-forward process** (`kubectl`), not directly by SSHing “into YAML.” Updating **`.env`** implies recreating/updating **`jaarvi-env`** and restarting the Deployment so Pods pick up new configuration.
+
+---
+
+## 16. Reboot (restart Jaarvi infrastructure)
+
+Use this checklist after **macOS reboots** or when Docker Desktop was **fully quit**—not when you redeploy changed code.
+
+**What usually survives:** **`kind`** cluster definitions, manifests, Postgres data on the PersistentVolumeClaim, and **`kubectl`** context **`kind-jaarvi`** (stored under **`~/.kube/`**)—as long as **Docker Desktop** still has its disk images.
+
+**What always stops:** the **`kubectl port-forward`** helper from section **9** is a normal process on the host; reboot kills it—you must **start it again** for **`http://…:30080`**.
+
+Run the blocks below **in order** (same style as earlier steps: **one command per fenced block** for easy copy in preview).
+
+---
+
+**1.** Open **Docker Desktop** from Applications and wait until it reports **running** (whale icon in the menu bar is steady).
+
+**2.** Smoke-test the daemon (see section **3.1** if you see “Cannot connect to the Docker daemon”).
+
+```bash
+docker ps
+```
+
+**3.** Point **kubectl** at the **`jaarvi`** cluster.
+
+```bash
+kubectl config use-context kind-jaarvi
+```
+
+**4.** Confirm Kubernetes is answering.
+
+```bash
+kubectl get nodes -o wide
+```
+
+If this errors (no cluster / cannot reach API), revisit **sections 5 and 12**—you cannot skip straight to port-forward until the cluster exists.
+
+**5.** Confirm Jaarvi Pods in namespace **`jaarvi`**.
+
+```bash
+kubectl -n jaarvi get pods
+```
+
+Give them a minute after Docker starts; Pods should settle to **`Running`**. Optionally wait for declarative rollout (same timeouts as section **7.5**):
+
+```bash
+kubectl -n jaarvi rollout status statefulset/postgres --timeout=180s
+```
+
+```bash
+kubectl -n jaarvi rollout status deployment/jaarvi-backend --timeout=180s
+```
+
+**You do not re-run migrations** (**section 8**) on every reboot—only after an empty DB or new migration files.
+
+**6.** (**Optional**) If **`address already in use`** on **`30080`**, stop an old listener (normally unnecessary right after reboot). See section **11** for details.
+
+```bash
+pkill -f "kubectl.*port-forward.*jaarvi-backend"
+```
+
+**7.** Start the API port-forward again (**section 9**).
+
+```bash
+nohup kubectl -n jaarvi port-forward --address 0.0.0.0 svc/jaarvi-backend 30080:80 > /tmp/jaarvi-port-forward.log 2>&1 &
+```
+
+```bash
+sleep 3
+```
+
+**8.** Health check (**section 10**).
+
+```bash
+curl -s http://127.0.0.1:30080/api/health
+```
 
 ---
 
