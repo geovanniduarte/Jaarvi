@@ -469,4 +469,80 @@ The manifest sets **`DB_HOST=postgres`** on the backend container so the app use
 
 ---
 
+## 15. Application components, tooling, and operator actions
+
+This illustration is intentionally **hardware-agnostic**: it describes **what the Jaarvi stack is made of**, **how pieces relate**, and **which tools implement which responsibilities**—the same concepts apply wherever Docker, kind, and Kubernetes run.
+
+### 15.1 Application components in the cluster (what runs, and dependencies)
+
+Kubernetes groups everything for this demo under **namespace `jaarvi`**.
+
+| Component (name in this guide) | Kind / role | How it relates to the rest |
+|--------------------------------|--------------|----------------------------|
+| **Secret `jaarvi-env`** | Holds key/value pairs from **`backend/.env`** | Mounted or referenced as env on the backend Pods (see templates); Postgres uses its **own** Secret from manifests. |
+| **PostgreSQL** (StatefulSet + Service **`postgres`** + PersistentVolumeClaim) | Relational database for the API | Stable in-cluster hostname **`postgres`**; backend uses **`DB_HOST=postgres`** (forced in deployment) regardless of stray values in `.env`. |
+| **Jaarvi backend** (`Deployment` + Pods, image **`jaarvi-backend:local`**) | HTTP API (Node runtime; **`PORT`** in `.env`, often **3000**) | Depends on Postgres for persistence; consumes **`jaarvi-env`** secret; listens on container port wired in **`backend.yaml`** / Service **`targetPort`**. |
+| **Service `jaarvi-backend`** | Cluster Network abstraction for reaching API Pods | **`kubectl port-forward` maps host `30080` → this Service (`80` → `targetPort`)** per section **9**; callers use **`/api/health`** etc. on that forwarded port. |
+| **`jaarvi-backend:local`** (image) | Build artifact (`docker build` from **`backend/`**) | Not magically inside the cluster: **kind needs `kind load docker-image`** (section **6**) so Pods can pull it locally without a registry. |
+
+### 15.2 Tools and representative actions
+
+| Tool | What it owns in this workflow | Typical actions here (conceptual verbs) |
+|------|-------------------------------|----------------------------------------|
+| **Git** | Source of **`backend/`**, **`k8s/templates/`** | **`clone`** / **`pull`** to refresh code and manifests. |
+| **`docker`** | Images and visibility into containers | **`docker build -t jaarvi-backend:local -f backend/Dockerfile backend`**; **`docker ps`** (running containers); engine must be running for kind. |
+| **`kind`** | Local Kubernetes atop Docker | **`kind create cluster --name jaarvi`**; **`kubectl config use-context kind-jaarvi`** (with kubectl); **`kind load docker-image jaarvi-backend:local --name jaarvi`**. |
+| **`kubectl`** | Lifecycle and introspection via the Kubernetes API | **`kubectl apply`** (namespace, Postgres, backend, Secret); **`kubectl -n jaarvi rollout status …`**; **`get pods`** / **`logs`** / **`describe`**; **`kubectl -n jaarvi port-forward --address … svc/jaarvi-backend 30080:80`**; **`rollout restart`** after Secret changes (troubleshooting). |
+| **`sed`** | Turning templates under **`k8s/templates/`** into concrete manifests | Substitute placeholders (app name, namespace, storage size, NodePort placeholder, image tag, container port) and pipe **`stdout`** into **`kubectl apply -f -`**. |
+| **Node.js + `npx`** (optional) | Database schema tooling | **`npx prisma migrate deploy`** when your process reaches the Postgres instance (often via port-forward rules of your choosing). |
+
+### 15.3 Diagram (components × tools × data flow)
+
+```mermaid
+flowchart TB
+  subgraph cluster["Kubernetes cluster jaarvi — kubectl context kind-jaarvi"]
+    subgraph ns["Namespace jaarvi"]
+      SEC["Secret jaarvi-env\n(from backend/.env)"]
+      DEP["Jaarvi Backend\nDeployment / Pods"]
+      SVCB["Service jaarvi-backend"]
+      PG[(PostgreSQL\nStatefulSet / PVC)]
+      SVCP["Service postgres\n(cluster DNS name: postgres)"]
+      SEC -.->|"env vars"| DEP
+      DEP --- SVCB
+      DEP -->|"DATABASE_URL uses host postgres"| SVCP
+      PG --- SVCP
+    end
+  end
+
+  subgraph reachApi["Expose the API (outside Pods)"]
+    PF["kubectl port-forward\nhost 30080 → Service jaarvi-backend:80"]
+    CALLER["Caller e.g. curl / browser"]
+    CALLER -->|"HTTP"| PF --> SVCB
+  end
+
+  subgraph delivery["Artifacts and operator toolchain"]
+    SRC["Repo: Dockerfile, backend/, k8s/templates/\n+ git"]
+    IMG["Docker image\njaarvi-backend:local"]
+    YAML["Rendered YAML manifests"]
+    GIT["git — sync source"]
+    SED["sed — render templates"]
+    DOCKER["docker — build & engine"]
+    KIND["kind — create cluster; load image"]
+    KUBE["kubectl — apply | status | logs | restart | port-forward"]
+    NPM["optional: npx prisma migrate"]
+
+    GIT --> SRC
+    SRC --> DOCKER
+    SRC --> SED --> YAML --> KUBE
+    DOCKER --> IMG --> KIND --> cluster
+    KUBE --> cluster
+    KUBE -.->|"section 9"| PF
+    NPM -.->|"optional schema"| PG
+  end
+```
+
+*Relationships that matter:* the **backend** resolves **Postgres by Service DNS** inside the cluster; **callers outside the cluster** reach the backend only via a **long-lived port-forward process** (`kubectl`), not directly by SSHing “into YAML.” Updating **`.env`** implies recreating/updating **`jaarvi-env`** and restarting the Deployment so Pods pick up new configuration.
+
+---
+
 *This document is derived from the same flow as `.cursor/commands/deploy-kubernetes.md`, omitting any SSH-based or remote-copy automation. All steps are intended to be executed **on the MacBook** by a human operator, after cloning the full repository on that Mac.*
