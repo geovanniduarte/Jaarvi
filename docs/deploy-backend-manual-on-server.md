@@ -237,11 +237,23 @@ docker ps
 
 Seeing only the header row (no containers listed) is normal before you create the kind cluster; see the **Verify** note in section **3.1**. If this fails, open **Docker Desktop** from Applications and wait until it is fully started, then run `docker ps` again.
 
-Create the cluster **named `jaarvi`** (name used in the rest of this guide):
+Create the cluster **named `jaarvi`** (name used in the rest of this guide). Run the lines below **one after another**. Each command is in its **own** block so you can copy it alone in preview mode.
+
+**1.** List existing kind clusters and match the name **`jaarvi`**. If that name is missing, **create** the cluster. If **`jaarvi`** already exists, the create part is skipped.
 
 ```bash
 kind get clusters | grep -q jaarvi || kind create cluster --name jaarvi
+```
+
+**2.** Point **kubectl** at this cluster’s API. The context name follows the pattern **`kind-<cluster-name>`**, so **`jaarvi`** → **`kind-jaarvi`**. Later `kubectl` commands in this guide apply to this cluster only.
+
+```bash
 kubectl config use-context kind-jaarvi
+```
+
+**3.** Show cluster nodes with extra columns (**`-o wide`**). Confirms the control plane node is **Ready** and that your Mac is really talking to **kind-jaarvi**.
+
+```bash
 kubectl get nodes -o wide
 ```
 
