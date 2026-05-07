@@ -156,7 +156,16 @@ kubectl version --client
 
 ### 3.3 kind (Kubernetes-in-Docker)
 
-Check the latest version on [kind releases](https://github.com/kubernetes-sigs/kind/releases). Example for **v0.31.0**:
+**kind** (**K**ubernetes **IN** **D**ocker) is a small official tool that **creates a real Kubernetes cluster on your Mac**—but lightweight: cluster “nodes” are **containers** launched by Docker, not separate physical servers. That makes kind ideal for learning and local demos without a cloud account.
+
+In this manual, kind is what gives you something for **kubectl** to talk to after `kind create cluster`. You use it to:
+
+- **Provision** the local cluster (this guide names it **`jaarvi`**).
+- **Load** the backend image from Docker into that cluster (`kind load docker-image` in section **6**) so Kubernetes can run your **`jaarvi-backend:local`** image without a registry.
+
+**Prerequisites:** Docker Desktop must be running (section **3.1**); **kubectl** should already be installed (section **3.2**) so you can switch context to `kind-jaarvi` and apply manifests afterward.
+
+Install the **`kind`** binary for your Mac from [kind releases](https://github.com/kubernetes-sigs/kind/releases). The commands below use **v0.31.0** as an example—if you pick a newer release, replace the version in the URL with the one you downloaded.
 
 **Apple Silicon:**
 
