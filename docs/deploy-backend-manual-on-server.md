@@ -350,7 +350,15 @@ If the backend **CrashLoops** waiting for Postgres, letting **(1)** finish first
 
 The running API image does **not** automatically apply Prisma migrations. After Postgres is up, the database might be **empty** until migrations are applied.
 
-**Typical approach for operators:** from the same MacBook (or any machine that can reach the cluster’s Postgres), with the full `backend` source from your clone (including `prisma/migrations`) and Node.js installed, set `DATABASE_URL` to point at the in-cluster Postgres (for example by using `kubectl port-forward` to the `postgres` service and `DB_HOST=127.0.0.1` in the URL), then run:
+**Typical approach for operators:** from the same MacBook (or any machine that can reach the cluster’s Postgres), with the full `backend` source from your clone (including `prisma/migrations`) and **Node.js installed** (same as **section 3.4**), set `DATABASE_URL` to point at the in-cluster Postgres (for example by using `kubectl port-forward` to the `postgres` service and `DB_HOST=127.0.0.1` in the URL), then run:
+
+**Check first:** `npx` is shipped with **npm**, which comes with Node. If the shell says **`command not found: npx`**, install **Node.js LTS (20.x)** and open a **new** terminal (or fix `PATH`—see **section 12**, `npx` / `command not found`).
+
+```bash
+command -v node && command -v npx
+```
+
+Both lines should print a path. Then:
 
 ```bash
 cd backend
@@ -437,6 +445,24 @@ Open **Docker Desktop** from Applications and wait until it finishes starting. C
 ### `kind: command not found` / `kubectl: command not found`
 
 Repeat the install sections; ensure binaries are under `/usr/local/bin` and your `PATH` includes it (`echo $PATH`).
+
+### `npx: command not found` / `command not found: npx`
+
+**Cause:** **Node.js** (and therefore **npm**, which provides **`npx`**) is not installed, or it is installed but your **PATH** does not include the directory that contains `node` and `npx`.
+
+**Fix (pick one):**
+
+- **Installer:** install **LTS 20.x** from [https://nodejs.org/](https://nodejs.org/), then **quit Terminal and open it again** so `PATH` refreshes.
+- **Homebrew:** `brew install node@20` — if `npx` still fails, run **`brew info node@20`** and add the printed **`export PATH=...`** snippet to your shell config, or use the suggested **`brew link node@20`** option, then open a new terminal.
+
+Verify:
+
+```bash
+node -v
+npx -v
+```
+
+Both should print versions. Then retry **`npx prisma migrate deploy`** from **`backend/`** (section **8**).
 
 ### Pods not ready / CrashLoopBackOff
 
