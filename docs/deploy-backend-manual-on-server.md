@@ -319,10 +319,30 @@ If your `PORT` in `.env` is not `3000`, use that value instead of `3000` in `__B
 
 ### 7.5 Wait until workloads are ready
 
+Applying YAML (sections **7.3–7.4**) only **declares** what Kubernetes should run; Pods may still be **pulling images**, attaching **persistent volumes**, passing **health checks**, or **retrying** if a dependency starts slowly. **`kubectl rollout status`** subscribes to the controller until the workload reports “finished deploying” or the wait times out—it is safer than guessing with `sleep`.
+
+- **`-n jaarvi`** scopes both commands to the **`jaarvi`** namespace.
+- **`--timeout=180s`** waits **up to three minutes** per workload; if a line exits with an error or hangs past the deadline, inspect Pods and logs (**section 12**).
+
+**Order matters:** Postgres is the StatefulSet (**stable identity + disk**); the backend talks to **`postgres`** inside the cluster. Wait for Postgres first, then confirm the Deployment has rolled out successfully.
+
+Run these **one at a time**. Each block is standalone so you can copy it separately in preview.
+
+**1.** Block until **`statefulset/postgres`** has completed its rollout (Pod running, StatefulSet reconciliation done).
+
 ```bash
 kubectl -n jaarvi rollout status statefulset/postgres --timeout=180s
+```
+
+**Success:** kubectl prints something like **`successfully rolled out`** and exits. **Failure / timeout:** the command exits non‑zero; use **`kubectl -n jaarvi get pods`** and **`kubectl -n jaarvi describe pod`** on the Postgres Pod.
+
+**2.** Block until **`deployment/jaarvi-backend`** has finished updating all desired replicas.
+
+```bash
 kubectl -n jaarvi rollout status deployment/jaarvi-backend --timeout=180s
 ```
+
+If the backend **CrashLoops** waiting for Postgres, letting **(1)** finish first usually resolves it on retry; otherwise use logs and **`describe`** (**section 12**).
 
 ---
 
