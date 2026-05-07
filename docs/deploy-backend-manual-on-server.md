@@ -41,7 +41,7 @@ Pick a folder where you keep projects (example: your home directory). Replace th
 
 ```bash
 cd ~
-git clone https://github.com/YOUR_ACCOUNT_OR_ORG/Jaarvi.git
+git clone https://github.com/geovanniduarte/Jaarvi.git
 cd Jaarvi
 ```
 
