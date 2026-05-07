@@ -115,13 +115,26 @@ Verify in Terminal:
 docker ps
 ```
 
-You should see a table header with no errors. If you see “Cannot connect to the Docker daemon”, Docker Desktop is not running—open it from Applications.
+**What you should see:** if Docker is working, the command prints a **table header** (columns such as `CONTAINER ID`, `IMAGE`, `COMMAND`, `CREATED`, `STATUS`, `PORTS`, `NAMES`) and **no error**. That is correct even when there are **no data rows** below the header—`docker ps` lists **only running** containers by default, so a fresh setup often shows just the header line. To list stopped or exited containers as well, use `docker ps -a`. To confirm the engine further, use `docker info` or a quick one-off check: `docker run --rm hello-world`.
+
+If you see “Cannot connect to the Docker daemon”, Docker Desktop is not running—open it from Applications.
 
 **Resources:** kind needs enough RAM. In Docker Desktop: **Settings → Resources** and give at least **4 CPUs / 4 GB RAM** if you can.
 
 ### 3.2 kubectl (Kubernetes command-line client)
 
-Download the **macOS** (`darwin`) build that matches `uname -m` from section 2.4.
+**Kubernetes** (often abbreviated **K8s**) is the control plane that **runs and supervises containers** on a cluster: it decides *where* they run, restarts them if they crash, exposes network ports, attaches storage, and applies the configuration you declare in YAML files. You do **not** need to understand all of that to follow this guide; you only need a way to *talk* to your cluster.
+
+**kubectl** is that tool: the **Kubernetes CLI**—a **terminal program** that sends commands to the cluster’s API. In this manual you use it to:
+
+- **Point** your Mac at the right cluster (after **kind** creates one, kubectl uses a **context** such as `kind-jaarvi`).
+- **Apply** manifests so Postgres and the Jaarvi backend are created and updated (`kubectl apply`, `kubectl rollout`, and similar).
+- **Inspect** whether things are healthy (`kubectl get pods`, logs, descriptions).
+- Later, **forward** port **30080** so other devices can reach the API (`kubectl port-forward`).
+
+Docker Desktop runs the container processes on your Mac (including the **kind** cluster “nodes,” which are themselves containers); **kubectl** is how you operate **Kubernetes** on top of that. Installing kubectl only adds the `kubectl` command; nothing useful runs *until* you have a cluster—subsection **3.3** (**kind**) creates that cluster on your machine.
+
+Install the official **macOS** binary (**darwin**) that matches your Mac chip from section **2.4** (`arm64` vs `amd64`).
 
 **Apple Silicon (`arm64`):**
 
@@ -213,7 +226,7 @@ cd ~/Jaarvi
 docker ps
 ```
 
-If this fails, open **Docker Desktop** from Applications and wait until it is fully started, then run `docker ps` again.
+Seeing only the header row (no containers listed) is normal before you create the kind cluster; see the **Verify** note in section **3.1**. If this fails, open **Docker Desktop** from Applications and wait until it is fully started, then run `docker ps` again.
 
 Create the cluster **named `jaarvi`** (name used in the rest of this guide):
 
