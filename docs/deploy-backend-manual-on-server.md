@@ -21,6 +21,24 @@ This guide is for someone with **no infrastructure background**. You work **on t
 
 **Secrets:** passwords and keys live in `backend/.env` on the Mac. Do not paste the contents of `.env` into chat, tickets, or screenshots.
 
+### 1.1 First-time order (Kubernetes from scratch—do not skip ahead)
+
+Someone deploying **for the first time** should complete the sections below **in this order**. Later sections assume earlier ones succeeded (for example, migrations need a **running Postgres Pod** inside the cluster).
+
+| Order | Section | Goal (plain language) |
+|------|---------|------------------------|
+| 1 | §2 | Clone repo; confirm `backend/` and `k8s/` exist. |
+| 2 | §3 | Install Docker Desktop, **`kubectl`**, **`kind`**, and (for migrations) **Node.js / `npx`**. |
+| 3 | §4 | Write **`backend/.env`** and **`DATABASE_URL`** so they match how you will run Prisma (**§8**) and match the Secret applied in §7.2. |
+| 4 | §5 | Start the **kind** cluster **`jaarvi`** and select context **`kind-jaarvi`**. |
+| 5 | §6 | **`docker build`** the API image and **`kind load`** it so Pods can use **`jaarvi-backend:local`**. |
+| 6 | §7 | **`kubectl apply`** namespace → Secret → Postgres → backend; **`rollout wait`** Postgres **then** backend. |
+| 7 | **§8** | **Tunnel Postgres to your Mac** and run **Prisma migrate** so tables exist (**before** relying on DB-backed API behavior). |
+| 8 | §9 | **`port-forward`** the **API** Service so callers reach **`…:30080`**. |
+| 9 | §10 | **`curl`** health checks from the Mac and (optionally) the LAN. |
+
+**Typical mistakes:** running **§8** before Postgres is **Ready** (migrations fail); using **`npx prisma`** without pinning the CLI version (**§8**) and hitting a schema error on Prisma v7; forgetting a **running** **`kubectl port-forward svc/postgres`** while Prisma connects to **`127.0.0.1`**.
+
 ---
 
 ## 2. Before you start
@@ -189,7 +207,7 @@ kind version
 
 - **`curl`**: preinstalled on macOS.
 - **`sed`**: preinstalled; used to fill template placeholders.
-- **Node.js** (only if you will run `npx prisma migrate deploy` from section 8): install from [https://nodejs.org/](https://nodejs.org/) (LTS 20.x) or `brew install node@20` if you use Homebrew.
+- **Node.js** (only if you will run **`npx prisma@5.22.0 migrate deploy`** or **`npm run prisma:migrate:deploy`** from section **8**): install from [https://nodejs.org/](https://nodejs.org/) (LTS 20.x) or `brew install node@20` if you use Homebrew.
 
 ---
 
@@ -215,12 +233,17 @@ Use any editor (`nano`, `vim`, or a graphical editor). Set at least:
 | `DB_PASSWORD` | A strong password. |
 | `DB_NAME` | Database name (e.g. `jaarvi_prod`). |
 | `DB_PORT` | `5432` (default for Postgres in this setup). |
-| `DB_HOST` | You can leave the example value for now; **inside Kubernetes the deployment forces `DB_HOST=postgres`** so the app talks to the in-cluster database. |
+| `DB_HOST` | For **pods inside Kubernetes**, deployment overrides this to **`postgres`** (cluster DNS name). Your file can still say `127.0.0.1` for clarity when you migrate from the Mac (**§8**); do **not** use **`0.0.0.0`** as a database hostname—clients cannot connect to it. |
 | `JWT_SECRET` | At least **32 characters**, random. |
 | `PORT` | `3000` unless you have a reason to change it (must match the template step below). |
 | `NODE_ENV` | `production` for a real deployment. |
 
-Ensure `DATABASE_URL` in `.env` stays consistent with `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, and `DB_NAME` (same as in `.env.example` pattern).
+**`DATABASE_URL` and Prisma:** the **Prisma CLI** reads **`DATABASE_URL`** from **`backend/.env`** as a **literal** string—it does **not** expand shell-style **`${VAR}`** placeholders inside that file.
+
+- **`DB_USER`**, **`DB_PASSWORD`**, **`DB_NAME`** (and port) inside **`DATABASE_URL`** must match what you loaded into **`jaarvi-env`** (**§7.2**).
+- When you migrate **from your Mac through a Postgres port-forward** (**§8**), the host inside **`DATABASE_URL`** must be **`127.0.0.1`** (or **`localhost`**) **and** the port must match the **local** end of **`kubectl port-forward`** (often **`5432`**).
+
+The Node app still builds its own URL from **`DB_*`** at runtime (**`env.ts`**); keep **`DATABASE_URL`** in sync anyway so **`npx prisma …`** sees the correct connection string.
 
 Save the file. **Do not commit `.env` to git** (it should already be listed in `.gitignore`).
 
@@ -285,6 +308,8 @@ Replace placeholders in templates with **`jaarvi`** for app and namespace, set P
 
 **Convention:** `__BACKEND_PORT__` must match the **`PORT`** value in `backend/.env` (default **3000**).
 
+**Order vs. migrations:** Complete **§7.5** (Postgres rollout **successful**) **before** **§8** (Prisma). Running migrate while Postgres still starts yields **connection refused**. Exposing the API (**§9**) can wait until after migrations or in parallel—they are independent—as long as **§8’s** Postgres forward runs in its **own terminal** while **`npx prisma@5.22.0 migrate deploy`** executes.
+
 ### 7.1 Namespace
 
 ```bash
@@ -348,24 +373,106 @@ If the backend **CrashLoops** waiting for Postgres, letting **(1)** finish first
 
 ## 8. Database schema (migrations)
 
-The running API image does **not** automatically apply Prisma migrations. After Postgres is up, the database might be **empty** until migrations are applied.
+The running API image does **not** automatically apply Prisma migrations. After Postgres is up, the database volume might still be **empty** until migrations are applied.
 
-**Typical approach for operators:** from the same MacBook (or any machine that can reach the cluster’s Postgres), with the full `backend` source from your clone (including `prisma/migrations`) and **Node.js installed** (same as **section 3.4**), set `DATABASE_URL` to point at the in-cluster Postgres (for example by using `kubectl port-forward` to the `postgres` service and `DB_HOST=127.0.0.1` in the URL), then run:
+### 8.1 Where this sits in the full flow
 
-**Check first:** `npx` is shipped with **npm**, which comes with Node. If the shell says **`command not found: npx`**, install **Node.js LTS (20.x)** and open a **new** terminal (or fix `PATH`—see **section 12**, `npx` / `command not found`).
+- **Depends on:** Postgres **StatefulSet rollout finished** (**§7.5**, step **1**) and correct **`backend/.env` + Secret** (**§7.2**).
+- **Does not require:** API port-forward (**§9**). Open only a **Postgres** tunnel for this section; add the backend port-forward when you expose the HTTP API (**§9**).
+- **When to repeat:** after **new migration files** from Git or when pointing at an **empty** database—not on every reboot (see **§16**).
+
+You run Prisma **on the Mac**, but it must talk through **`kubectl`** to Postgres **inside** the cluster unless you expose Postgres some other way (not covered here).
+
+---
+
+### 8.2 Step 1 — Confirm `kubectl` is talking to the right cluster
+
+**Purpose:** `npx prisma` connects to whichever URL is in **`DATABASE_URL`**, but Postgres still lives inside **kind**. If **`kubectl`** points at the wrong context, later steps will forward the wrong Postgres or none at all.
+
+```bash
+kubectl config current-context
+```
+
+You want **`kind-jaarvi`** (matching **§5**). If not:
+
+```bash
+kubectl config use-context kind-jaarvi
+```
+
+---
+
+### 8.3 Step 2 — Confirm Postgres Pod is usable
+
+**Purpose:** Migrate only **after** Postgres is running; otherwise Prisma raises connection errors (**P1001**).
+
+```bash
+kubectl -n jaarvi get pods -l app.kubernetes.io/component=postgres -o wide
+```
+
+The Pod should show **`Running`** (if not, revisit **§7.5** and **§12**).
+
+---
+
+### 8.4 Step 3 — Tunnel cluster Postgres to your Mac (leave this terminal open)
+
+**Purpose:** Postgres listens on **`5432`** **inside** the cluster. **`kubectl port-forward`** maps a **localhost** port on your Mac to that Service so Prisma—running **outside** Pods—can open a TCP connection to **`127.0.0.1`**.
+
+**Terminal A** (stay connected; Ctrl+C closes the tunnel):
+
+```bash
+kubectl -n jaarvi port-forward svc/postgres 5432:5432
+```
+
+- **`svc/postgres`** is the Kubernetes **Service** backing the Postgres StatefulSet.
+- **`5432:5432`** → local port **5432** on the Mac → remote Service port **5432**.
+
+If your Mac already uses **5432** for another Postgres (often “Postgres.app” or Docker), reuse the forward with a **free local port** instead, e.g. **`15432:5432`**:
+
+```bash
+kubectl -n jaarvi port-forward svc/postgres 15432:5432
+```
+
+Then set **`DB_PORT`** and the port inside **`DATABASE_URL`** to **`15432`** for the duration of the migrate (**§8.6**).
+
+---
+
+### 8.5 Step 4 — Align `backend/.env` on the Mac
+
+**Purpose:** Prisma validates credentials against the database you forward. Those credentials must match the **`POSTGRES_*`** bootstrap values taken from **`jaarvi-env`** (created from **`backend/.env`** in **§7.2**).
+
+- **`DATABASE_URL`** must contain **`127.0.0.1`** (not **`0.0.0.0`**) when using the forward above, and **`DB_USER`** / **`DB_PASSWORD`** / **`DB_NAME`** that match what you deployed.
+- Use a single **literal** **`postgresql://…`** string in **`DATABASE_URL`** (**§4**); Prisma **does not** expand **`${VAR}`** inside **`DATABASE_URL`** in **`dotenv`** on its own.
+
+---
+
+### 8.6 Step 5 — Prerequisites for `npx`
+
+**Purpose:** Migrate uses **Node/npm** tooling on the Mac (see **§3.4**), not Docker.
 
 ```bash
 command -v node && command -v npx
 ```
 
-Both lines should print a path. Then:
+Both should print a path. If not, fix **§3.4** then open a **new** terminal (**§12**, `npx` troubleshooting).
+
+---
+
+### 8.7 Step 6 — Apply migrations (recommended command)
+
+Open **Terminal B** (while **Terminal A** still shows an active Postgres forward).
+
+**Purpose:** Runs Prisma Migrate **deploy** (`prisma/migrations/` in your clone). Using **`npm run prisma:migrate:deploy`** from **`backend/`** also works (**uses `package.json`**), but pinning the **`prisma`** package version avoids **`npx`** downloading Prisma **7.x**, whose CLI **rejects** this repo’s **Prisma 5** schema (**`url` in `schema.prisma`**) unless the project has been migrated to **`prisma.config.ts`**.
+
+From the repository root (`Jaarvi/`):
 
 ```bash
-cd backend
-npx prisma migrate deploy
+cd ~/Jaarvi/backend
+npx prisma@5.22.0 migrate deploy
 ```
 
-If you are not sure whether this step is needed, try the health check first; then try a real API call. If you get database errors about missing tables, migrations are required. Coordinate with your team or follow your project’s database runbook.
+**Versions:** **`5.22.0`** tracks **`backend/package.json`** (**`dependencies`**: **`@prisma/client`**, **`devDependencies`**: **`prisma`**). If dependencies are upgraded later, bump this pin to match or prefer **`npm run prisma:migrate:deploy`** inside **`backend/`** after **`npm ci`/`npm install`**.
+
+If you skip migrations and tables are missing, the API may **`CrashLoop`** on DB reads or surface query errors (**§12**).
 
 ---
 
@@ -431,8 +538,10 @@ curl -s http://<SERVER_IP>:30080/api/health
 | Backend logs | `kubectl -n jaarvi logs deploy/jaarvi-backend --tail=100 -f` |
 | Postgres logs | `kubectl -n jaarvi logs statefulset/postgres --tail=100` |
 | Describe a failing pod | `kubectl -n jaarvi describe pod <pod-name>` |
-| Check port-forward | `pgrep -af "port-forward.*jaarvi-backend"` |
-| Stop port-forward | `pkill -f "kubectl.*port-forward.*jaarvi-backend"` |
+| **Check backend port-forward** | `pgrep -af "port-forward.*jaarvi-backend"` |
+| **Check Postgres forward** (during **§8**) | `pgrep -af "port-forward.*svc/postgres"` |
+| Stop **backend** port-forward | `pkill -f "kubectl.*port-forward.*jaarvi-backend"` |
+| Stop **Postgres** port-forward | Ctrl+C in the **`Terminal A`** from **§8.4**, or `pkill -f "kubectl.*port-forward.*postgres"` (**review matches**—can kill unintended forwards) |
 
 ---
 
@@ -462,7 +571,7 @@ node -v
 npx -v
 ```
 
-Both should print versions. Then retry **`npx prisma migrate deploy`** from **`backend/`** (section **8**).
+Both should print versions. Then retry **`npx prisma@5.22.0 migrate deploy`** from **`backend/`** (section **8**—see step **§8.7**) or **`npm run prisma:migrate:deploy`** after installing dependencies.
 
 ### Pods not ready / CrashLoopBackOff
 
@@ -489,7 +598,13 @@ kubectl -n jaarvi rollout restart deployment/jaarvi-backend
 
 ### How `DB_HOST` works in Kubernetes
 
-The manifest sets **`DB_HOST=postgres`** on the backend container so the app uses the **Kubernetes service name** for Postgres, even if `backend/.env` still says `localhost` or `0.0.0.0`. You do not need to edit `.env` for that behavior.
+The manifest sets **`DB_HOST=postgres`** on the backend container so the app uses the **Kubernetes service name** for Postgres, even if `backend/.env` still says **`localhost`** or placeholders. **`0.0.0.0`** is invalid for Postgres **clients**; use **`postgres`** inside the cluster (**backend Pod**) or **`127.0.0.1` + port-forward** on the Mac when running Prisma (**§8**).
+
+### Prisma migrate: “url is no longer supported” / CLI version mismatch
+
+**Cause:** `npx prisma` without pinning may install **Prisma 7.x**, which expects **`prisma.config.ts`** instead of **`url`** in **`schema.prisma`**.
+
+**Fix:** Run **`npx prisma@5.22.0 migrate deploy`** from **`backend/`**, or **`npm run prisma:migrate:deploy`** after **`npm install`** so `node_modules` supplies **Prisma 5.x** (**§8.7**).
 
 ---
 
@@ -538,9 +653,9 @@ Kubernetes groups everything for this demo under **namespace `jaarvi`**.
 | **Git** | Source of **`backend/`**, **`k8s/templates/`** | **`clone`** / **`pull`** to refresh code and manifests. |
 | **`docker`** | Images and visibility into containers | **`docker build -t jaarvi-backend:local -f backend/Dockerfile backend`**; **`docker ps`** (running containers); engine must be running for kind. |
 | **`kind`** | Local Kubernetes atop Docker | **`kind create cluster --name jaarvi`**; **`kubectl config use-context kind-jaarvi`** (with kubectl); **`kind load docker-image jaarvi-backend:local --name jaarvi`**. |
-| **`kubectl`** | Lifecycle and introspection via the Kubernetes API | **`kubectl apply`** (namespace, Postgres, backend, Secret); **`kubectl -n jaarvi rollout status …`**; **`get pods`** / **`logs`** / **`describe`**; **`kubectl -n jaarvi port-forward --address … svc/jaarvi-backend 30080:80`**; **`rollout restart`** after Secret changes (troubleshooting). |
+| **`kubectl`** | Lifecycle and introspection via the Kubernetes API | **`kubectl apply`** (namespace, Postgres, backend, Secret); **`kubectl -n jaarvi rollout status …`**; **`get pods`** / **`logs`** / **`describe`**; **`kubectl -n jaarvi port-forward`** to **`svc/postgres`** (migrations—**§8.4**) and **`svc/jaarvi-backend 30080:80`** (API—**§9**); **`rollout restart`** after Secret changes (troubleshooting). |
 | **`sed`** | Turning templates under **`k8s/templates/`** into concrete manifests | Substitute placeholders (app name, namespace, storage size, NodePort placeholder, image tag, container port) and pipe **`stdout`** into **`kubectl apply -f -`**. |
-| **Node.js + `npx`** (optional) | Database schema tooling | **`npx prisma migrate deploy`** when your process reaches the Postgres instance (often via port-forward rules of your choosing). |
+| **Node.js + `npx`** (optional) | Database schema tooling on the Mac | **`npx prisma@5.22.0 migrate deploy`** (**§8.7**) with **`DATABASE_URL`** pointing at **`127.0.0.1`** through a Postgres **`port-forward`**, **or** **`npm run prisma:migrate:deploy`** from **`backend/`** using local **`node_modules`**. Pinning avoids stray **Prisma 7** CLI (**§12** troubleshooting). |
 
 ### 15.3 Diagram (components × tools × data flow)
 
@@ -575,7 +690,7 @@ flowchart TB
     DOCKER["docker — build & engine"]
     KIND["kind — create cluster; load image"]
     KUBE["kubectl — apply | status | logs | restart | port-forward"]
-    NPM["optional: npx prisma migrate"]
+    NPM["optional: npx prisma@5.22.0 migrate\n+ port-forward Postgres"]
 
     GIT --> SRC
     SRC --> DOCKER
@@ -641,7 +756,7 @@ kubectl -n jaarvi rollout status statefulset/postgres --timeout=180s
 kubectl -n jaarvi rollout status deployment/jaarvi-backend --timeout=180s
 ```
 
-**You do not re-run migrations** (**section 8**) on every reboot—only after an empty DB or new migration files.
+**You do not re-run migrations** (**section 8**) on every reboot—only after an **empty** DB, **changed** **`prisma/migrations`**, or a deliberate **`migrate deploy`** on a restored volume. Postgres port-forward (**§8.4**) is only needed **while running Prisma**, not permanently after reboot (**§16** restores the **API** forward **§9**).
 
 **6.** (**Optional**) If **`address already in use`** on **`30080`**, stop an old listener (normally unnecessary right after reboot). See section **11** for details.
 
