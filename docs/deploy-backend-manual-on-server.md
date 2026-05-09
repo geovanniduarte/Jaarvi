@@ -827,6 +827,8 @@ sleep 3
 
 ```bash
 curl -s http://127.0.0.1:30080/api/health
+curl -i "http://127.0.0.1:30080/api/destinations/countries" \
+  -H "Authorization: Bearer <TOKEN>"
 ```
 
 ---
