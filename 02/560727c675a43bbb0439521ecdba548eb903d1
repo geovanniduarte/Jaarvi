@@ -1,0 +1,33 @@
+backend/__tests__/infrastructure/prismaClient.test.ts
+  s_217427e6824689::t_f23bdfaa2819b4 1-9,19-22,26,38-46,51,59
+backend/src/infrastructure/prismaClient.ts
+  s_217427e6824689::t_526b8047cc439e 29
+  s_217427e6824689::t_70ab418734e447 2
+  s_217427e6824689::t_6a9120bbe6acde 17-20
+backend/Dockerfile
+  s_217427e6824689::t_ad4df731e23f4c 7-8
+docs/deploy-backend-manual-on-server.md
+  s_217427e6824689::t_6a55a174a9ef9c 686
+  s_217427e6824689::t_9ef1170163a9b0 340
+  s_217427e6824689::t_51f558652b0886 341
+  s_217427e6824689::t_5cbccf4621b7f4 614
+  s_217427e6824689::t_5b6c741f74cf7b 18
+  s_217427e6824689::t_733ab733c43b67 42-50
+  s_217427e6824689::t_35d2cbcc9d1582 250,252-255,257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "02560727c675a43bbb0439521ecdba548eb903d1",
+  "prompts": {},
+  "sessions": {
+    "s_217427e6824689": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c6f6e9c2-5efd-4723-97a4-45df1c540630",
+        "model": "default"
+      },
+      "human_author": "geovanniduarte <geovanni.duarte.guerrero@gmail.com>"
+    }
+  }
+}
