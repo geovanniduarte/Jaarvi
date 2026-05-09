@@ -1,0 +1,21 @@
+docs/deploy-backend-manual-on-server.md
+  s_217427e6824689::t_efa79dde006441 646-647
+  s_217427e6824689::t_079b6ad0bd2ea0 316-347
+  s_217427e6824689::t_4f54db682a3a5c 40-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "bb47539b2dbfc6eb66e65240f9aa364f9c524087",
+  "prompts": {},
+  "sessions": {
+    "s_217427e6824689": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c6f6e9c2-5efd-4723-97a4-45df1c540630",
+        "model": "default"
+      },
+      "human_author": "geovanniduarte <geovanni.duarte.guerrero@gmail.com>"
+    }
+  }
+}
