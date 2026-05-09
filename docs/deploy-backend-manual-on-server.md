@@ -37,6 +37,8 @@ Someone deploying **for the first time** should complete the sections below **in
 | 8 | §9 | **`port-forward`** the **API** Service so callers reach **`…:30080`**. |
 | 9 | §10 | **`curl`** health checks from the Mac and (optionally) the LAN. |
 
+**After you change backend code** (not only **`git pull`**): **§6.1** — rebuild **`jaarvi-backend:local`**, **`kind load`**, **`kubectl rollout restart`**, then **`rollout status`**.
+
 **Typical mistakes:** running **§8** before Postgres is **Ready** (migrations fail); using **`npx prisma`** without pinning the CLI version (**§8**) and hitting a schema error on Prisma v7; forgetting a **running** **`kubectl port-forward svc/postgres`** while Prisma connects to **`127.0.0.1`**.
 
 ### 1.2 Quick reference: `kubectl port-forward` (Postgres vs API)
@@ -310,6 +312,38 @@ Load the image into the kind cluster (so Kubernetes can run it without a registr
 ```bash
 kind load docker-image jaarvi-backend:local --name jaarvi
 ```
+
+### 6.1 After backend code changes (rebuild and roll out)
+
+Changing **`backend/src`**, **`package.json`**, **`prisma/`**, or the **Dockerfile** does **not** update what is running in the cluster until you build a **new** image with the same tag, push it into **kind**, and restart the **Deployment**. (Pods keep using the image that was loaded when they started.)
+
+From the **repository root**, run **all three** blocks in order:
+
+**1.** Rebuild the image (same tag **`jaarvi-backend:local`** as in section **6**):
+
+```bash
+cd ~/Jaarvi
+docker build -t jaarvi-backend:local -f backend/Dockerfile backend
+```
+
+**2.** Load the updated image into your **kind** cluster (cluster name **`jaarvi`**):
+
+```bash
+kind load docker-image jaarvi-backend:local --name jaarvi
+```
+
+**3.** Restart the backend so new Pods pick up the new image, then wait until the rollout finishes:
+
+```bash
+kubectl -n jaarvi rollout restart deployment/jaarvi-backend
+kubectl -n jaarvi rollout status deployment/jaarvi-backend --timeout=180s
+```
+
+**If you only changed `backend/.env`:** you do **not** need steps **1–2**; apply the Secret and restart as in **section 12** (**Changed `.env` after deploy**).
+
+**If you changed `prisma/schema.prisma` or added migration files:** after the new Pods are up, run **Prisma migrate** from the Mac as in **section 8** (Postgres port-forward + **`npx prisma@5.22.0 migrate deploy`**).
+
+**API access:** if **`curl`** to **`http://127.0.0.1:30080`** fails with connection refused, ensure the **API port-forward** from **section 9** is still running (it does not restart automatically when you redeploy).
 
 ---
 
@@ -608,6 +642,8 @@ Common causes: wrong secret keys, invalid `.env`, Postgres not ready yet (wait a
 kubectl -n jaarvi create secret generic jaarvi-env --from-env-file=backend/.env --dry-run=client -o yaml | kubectl apply -f -
 kubectl -n jaarvi rollout restart deployment/jaarvi-backend
 ```
+
+For **TypeScript / Prisma / Dockerfile** changes, use **§6.1** instead (rebuild image + **`kind load`** + rollout)—updating the Secret alone is not enough.
 
 ### How `DB_HOST` works in Kubernetes
 
