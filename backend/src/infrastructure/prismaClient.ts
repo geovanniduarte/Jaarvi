@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client';
+import { getConfig } from './config';
 import { getLogger } from './logger';
 
 type PrismaClientWithLogs = PrismaClient<Prisma.PrismaClientOptions, 'query' | 'error' | 'warn'>;
@@ -13,6 +14,10 @@ let prismaInstance: PrismaClientWithLogs | null = null;
  * Gets the singleton Prisma client instance.
  * Creates and connects on first access.
  *
+ * Uses {@link getConfig}().database.url as `datasourceUrl` so runtime connections
+ * follow `DB_*` (e.g. `DB_HOST=postgres` in Kubernetes) instead of a stale
+ * `process.env.DATABASE_URL` from the Secret.
+ *
  * Note: The Prisma client handles connection pooling automatically.
  * Connection is established lazily on first query, not on instantiation.
  */
@@ -21,6 +26,7 @@ export function getPrismaClient(): PrismaClientWithLogs {
     const logger = getLogger();
 
     prismaInstance = new PrismaClient({
+      datasourceUrl: getConfig().database.url,
       log: [
         { level: 'query', emit: 'event' },
         { level: 'error', emit: 'event' },

@@ -4,6 +4,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # Generate Prisma client during image build so runtime does not need Prisma CLI.
+# schema.prisma uses env("DATABASE_URL"); .dockerignore excludes .env — placeholder satisfies generate only.
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 COPY prisma ./prisma
 RUN npx prisma generate
 

@@ -15,7 +15,7 @@ This guide is for someone with **no infrastructure background**. You work **on t
 - **Docker** packages the backend into an **image** (a sealed box with Node.js and your app).
 - **kind** starts a small **Kubernetes** cluster on your computer (inside Docker).
 - **Kubernetes** starts **PostgreSQL** and the **backend API** and keeps them running.
-- A **port forward** makes the API reachable from other devices on your network (browser or mobile app).
+- **`kubectl port-forward`** is used in **two** situations: (1) **Postgres**—a tunnel from your Mac to **`svc/postgres`** so **Prisma** (running on the Mac) can reach the database inside the cluster (**§8.4**); (2) **API**—forwarding the backend Service so **HTTP** clients on your LAN can reach **`…:30080`** (**§9**).
 
 **Health check:** when deployment works, opening `http://<SERVER_IP>:30080/api/health` should return JSON with `"success": true`.
 
@@ -38,6 +38,15 @@ Someone deploying **for the first time** should complete the sections below **in
 | 9 | §10 | **`curl`** health checks from the Mac and (optionally) the LAN. |
 
 **Typical mistakes:** running **§8** before Postgres is **Ready** (migrations fail); using **`npx prisma`** without pinning the CLI version (**§8**) and hitting a schema error on Prisma v7; forgetting a **running** **`kubectl port-forward svc/postgres`** while Prisma connects to **`127.0.0.1`**.
+
+### 1.2 Quick reference: `kubectl port-forward` (Postgres vs API)
+
+| Goal | Command (run on the Mac) | Full steps |
+|------|---------------------------|------------|
+| **Migrations (Prisma on the Mac → DB in the cluster)** | `kubectl -n jaarvi port-forward svc/postgres 5432:5432` | **§8.4** (leave this terminal open; use **§8.7** in another terminal). If local **5432** is busy, use **`15432:5432`** and match **`DATABASE_URL`**—see **§8.4**. |
+| **Reach the HTTP API from the network** | `nohup kubectl -n jaarvi port-forward --address 0.0.0.0 svc/jaarvi-backend 30080:80 …` | **§9** |
+
+**Why a Postgres port-forward is needed:** PostgreSQL only listens **inside** the Kubernetes network (on the **`postgres`** Service). Your Mac is **outside** that network, so **`npx prisma`** cannot connect to `postgres:5432` by hostname. **`kubectl port-forward`** opens a **TCP bridge**: a port on **`127.0.0.1`** on your Mac is wired to **`svc/postgres:5432`** in the cluster. Then **`DATABASE_URL`** can use **`127.0.0.1`** (and the local port you chose) while Prisma runs locally. **Pods** (the backend Deployment) do **not** need this—they use the in-cluster DNS name **`postgres`** (**§7**). After migrations finish, you can stop the Postgres forward; the **API** forward (**§9**) is separate.
 
 ---
 
@@ -238,12 +247,14 @@ Use any editor (`nano`, `vim`, or a graphical editor). Set at least:
 | `PORT` | `3000` unless you have a reason to change it (must match the template step below). |
 | `NODE_ENV` | `production` for a real deployment. |
 
-**`DATABASE_URL` and Prisma:** the **Prisma CLI** reads **`DATABASE_URL`** from **`backend/.env`** as a **literal** string—it does **not** expand shell-style **`${VAR}`** placeholders inside that file.
+**`DATABASE_URL` vs `DB_*` (two consumers):**
 
-- **`DB_USER`**, **`DB_PASSWORD`**, **`DB_NAME`** (and port) inside **`DATABASE_URL`** must match what you loaded into **`jaarvi-env`** (**§7.2**).
-- When you migrate **from your Mac through a Postgres port-forward** (**§8**), the host inside **`DATABASE_URL`** must be **`127.0.0.1`** (or **`localhost`**) **and** the port must match the **local** end of **`kubectl port-forward`** (often **`5432`**).
+- **Prisma CLI** (`npx prisma …`, **`migrate deploy`** in **§8**): reads **`DATABASE_URL`** from **`backend/.env`** as a **literal** string—it does **not** expand shell-style **`${VAR}`** placeholders inside that file.
+  - **`DB_USER`**, **`DB_PASSWORD`**, **`DB_NAME`** (and port) inside **`DATABASE_URL`** must match what you loaded into **`jaarvi-env`** (**§7.2**).
+  - When you migrate **from your Mac through a Postgres port-forward** (**§8**), the host inside **`DATABASE_URL`** must be **`127.0.0.1`** (or **`localhost`**) **and** the port must match the **local** end of **`kubectl port-forward`** (often **`5432`**).
+- **Backend API in Kubernetes** (runtime **Prisma Client**): connects using the URL built from **`DB_*`** after environment merge (**`env.ts`** + **`DB_HOST=postgres`** from the Deployment in **`backend.yaml`**). A **`DATABASE_URL`** key in **`jaarvi-env`** that still points at **`127.0.0.1`** (copied from a Mac-oriented `.env`) does **not** drive that client anymore—so the API does not try to open Postgres on the Pod’s loopback.
 
-The Node app still builds its own URL from **`DB_*`** at runtime (**`env.ts`**); keep **`DATABASE_URL`** in sync anyway so **`npx prisma …`** sees the correct connection string.
+Keep **`DATABASE_URL`** in `.env` correct for **§8** migrations on the Mac; **`DB_*`** (with **`DB_HOST` overridden in-cluster**) remain the source of truth for the **running** backend’s DB connection.
 
 Save the file. **Do not commit `.env` to git** (it should already be listed in `.gitignore`).
 
@@ -325,6 +336,8 @@ kubectl -n jaarvi create secret generic jaarvi-env --from-env-file=backend/.env 
 ```
 
 If you change `.env` later, run this command again and restart the backend deployment (see troubleshooting).
+
+**Operator note:** a Mac-oriented **`DATABASE_URL`** in **`jaarvi-env`** no longer breaks the **running API** (runtime Prisma uses **`DB_*`** after merge). To avoid confusion when inspecting the Secret, you can create it from a small env file that lists only the keys you want in the cluster (for example without **`DATABASE_URL`**) instead of the full **`backend/.env`**—keep **`DATABASE_URL`** in your real **`backend/.env`** for **`npx prisma`** on the Mac (**§4**, **§8**).
 
 ### 7.3 PostgreSQL
 
@@ -598,7 +611,7 @@ kubectl -n jaarvi rollout restart deployment/jaarvi-backend
 
 ### How `DB_HOST` works in Kubernetes
 
-The manifest sets **`DB_HOST=postgres`** on the backend container so the app uses the **Kubernetes service name** for Postgres, even if `backend/.env` still says **`localhost`** or placeholders. **`0.0.0.0`** is invalid for Postgres **clients**; use **`postgres`** inside the cluster (**backend Pod**) or **`127.0.0.1` + port-forward** on the Mac when running Prisma (**§8**).
+The manifest sets **`DB_HOST=postgres`** on the backend container so the app uses the **Kubernetes service name** for Postgres, even if `backend/.env` still says **`localhost`** or placeholders. **`0.0.0.0`** is invalid for Postgres **clients**; use **`postgres`** inside the cluster (**backend Pod**) or **`127.0.0.1` + port-forward** on the Mac when running Prisma (**§8**). Runtime **Prisma Client** uses the URL derived from **`DB_*`** (not a stale **`DATABASE_URL`** in the Secret); see **§4**.
 
 ### Prisma migrate: “url is no longer supported” / CLI version mismatch
 
@@ -670,7 +683,7 @@ flowchart TB
       SVCP["Service postgres\n(cluster DNS name: postgres)"]
       SEC -.->|"env vars"| DEP
       DEP --- SVCB
-      DEP -->|"DATABASE_URL uses host postgres"| SVCP
+      DEP -->|"DB_HOST postgres URL from config"| SVCP
       PG --- SVCP
     end
   end
