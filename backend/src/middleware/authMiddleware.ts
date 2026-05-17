@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { UnauthorizedError } from '../domain/errors';
+import { getPrismaClient } from '../infrastructure/prismaClient';
+
+/** Seeded dev user used by the JWT stub when any Bearer token is sent. */
+const STUB_USER_EMAIL = 'test@jaarvi.app';
 
 /**
  * STUB: Authenticates JWT tokens from the Authorization header.
@@ -24,11 +28,30 @@ export function authenticateJWT(req: Request, _res: Response, next: NextFunction
     return;
   }
 
-  // STUB: hardcode a test user that exists in the seeded DB for local development only
-  (req as Request & { user: { id: string; email: string } }).user = {
-    id: '2afb5526-d8fc-41ff-a313-f90bbe3c91bd',
-    email: 'test@jaarvi.app',
-  };
+  // STUB: attach the seeded test user (id from DB, not a fixed UUID)
+  void (async () => {
+    try {
+      const user = await getPrismaClient().user.findUnique({
+        where: { email: STUB_USER_EMAIL },
+      });
 
-  next();
+      if (!user) {
+        next(
+          new UnauthorizedError(
+            `Test user ${STUB_USER_EMAIL} not found. Run database seed (see deploy guide §8.8).`
+          )
+        );
+        return;
+      }
+
+      (req as Request & { user: { id: string; email: string } }).user = {
+        id: user.id,
+        email: user.email,
+      };
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  })();
 }

@@ -19,10 +19,12 @@ class DestinationRepositoryImpl(
 ) : IDestinationRepository {
 
     override suspend fun getCountries(): Result<List<Country>> = runCatching {
-        apiClient.getCountries().data.map { it.toDomain() }
+        val response = apiClient.getCountries()
+        response.data?.map { it.toDomain() } ?: emptyList()
     }
 
     override suspend fun getCities(countryId: String?): Result<List<City>> = runCatching {
-        apiClient.getCities(countryId).data.map { it.toDomain() }
+        val response = apiClient.getCities(countryId)
+        response.data?.map { it.toDomain() } ?: emptyList()
     }
 }

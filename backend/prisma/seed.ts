@@ -15,15 +15,18 @@ async function main() {
   // 2. Destinations (Required - always run)
   await seedDestinations(prisma);
 
-  // 3. Test Users (Development only)
-  if (process.env.NODE_ENV === 'development') {
+  // 3. Test Users (development or explicit opt-in for K8s lab DBs)
+  const seedDevData =
+    process.env.NODE_ENV === 'development' || process.env.SEED_TEST_USERS === 'true';
+
+  if (seedDevData) {
     await seedTestUsers(prisma);
 
-    // 4. Sample Trips (Development only, requires users)
+    // 4. Sample Trips (requires users)
     await seedSampleTrips(prisma);
   } else {
     console.log(
-      '⏭️  Skipping test users and sample trips (not in development mode)\n',
+      '⏭️  Skipping test users and sample trips (set NODE_ENV=development or SEED_TEST_USERS=true)\n',
     );
   }
 

@@ -16,6 +16,13 @@ kotlin {
         androidMain.dependencies {
             implementation(project(":shared"))
             implementation(project(":shared-ui"))
+
+            // KMP library deps are not always packaged into the app APK; declare Ktor JVM artifacts here.
+            implementation(libs.ktor.client.core.jvm)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
             
             // Compose Multiplatform
             implementation(compose.runtime)
@@ -71,7 +78,6 @@ android {
         versionCode = 1
         versionName = "1.0.0"
         
-        buildConfigField("String", "API_BASE_URL", "\"http://192.168.80.86:30080/api\"")
     }
     
     buildTypes {
@@ -81,10 +87,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"https://api.jaarvi.app\"")
-        }
-        debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.83:3000/api\"")
         }
     }
     

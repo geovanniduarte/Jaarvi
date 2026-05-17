@@ -1,18 +1,22 @@
 import { PrismaClient } from '@prisma/client';
 import argon2 from 'argon2';
+import { DEV_USER_IDS } from './devUserIds';
 
 export const testUserSeeds = [
   {
+    id: DEV_USER_IDS.test,
     email: 'test@jaarvi.app',
     displayName: 'Test User',
     password: 'TestPassword123',
   },
   {
+    id: DEV_USER_IDS.demo,
     email: 'demo@jaarvi.app',
     displayName: 'Demo User',
     password: 'DemoPassword123',
   },
   {
+    id: DEV_USER_IDS.admin,
     email: 'admin@jaarvi.app',
     displayName: 'Admin User',
     password: 'AdminPassword123',
@@ -34,6 +38,7 @@ export async function seedTestUsers(prisma: PrismaClient): Promise<void> {
       where: { email: userData.email },
       update: {},
       create: {
+        id: userData.id,
         email: userData.email,
         displayName: userData.displayName,
         emailVerifiedAt: new Date(),

@@ -6,6 +6,17 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 
+private fun parseInstantFromApi(value: String): Instant {
+    val trimmed = value.trim()
+    return runCatching { Instant.parse(trimmed) }.getOrElse {
+        val normalized = when {
+            trimmed.endsWith('Z') || trimmed.contains('+') -> trimmed
+            else -> "${trimmed}Z"
+        }
+        Instant.parse(normalized)
+    }
+}
+
 /**
  * Network DTO for a trip returned by the backend.
  *
@@ -34,13 +45,22 @@ fun TripDto.toDomain() = Trip(
     name      = name,
     startDate = LocalDate.parse(startDate.take(10)),
     endDate   = LocalDate.parse(endDate.take(10)),
-    status    = TripStatus.valueOf(status.uppercase()),
-    createdAt = Instant.parse(createdAt),
+    status    = runCatching { TripStatus.valueOf(status.uppercase()) }
+        .getOrDefault(TripStatus.DRAFT),
+    createdAt = parseInstantFromApi(createdAt),
+)
+
+/** Error payload when [ApiResponse.success] is false. */
+@Serializable
+data class ApiErrorDto(
+    val message: String,
+    val code   : String = "UNKNOWN",
 )
 
 /** Generic API envelope returned by all Jaarvi backend endpoints. */
 @Serializable
 data class ApiResponse<T>(
     val success: Boolean,
-    val data   : T,
+    val data   : T? = null,
+    val error  : ApiErrorDto? = null,
 )

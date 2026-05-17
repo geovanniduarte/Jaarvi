@@ -7,6 +7,7 @@ import com.jaarvi.shared.network.api.JaarviApiClient
 import com.jaarvi.shared.network.dto.AddDestinationRequest
 import com.jaarvi.shared.network.dto.CreateTripRequest
 import com.jaarvi.shared.network.dto.SavePlanningContextRequest
+import com.jaarvi.shared.network.bestMessage
 import com.jaarvi.shared.network.dto.toDomain
 import kotlinx.datetime.LocalDate
 
@@ -27,14 +28,18 @@ class TripRepositoryImpl(
         startDate: LocalDate,
         endDate  : LocalDate,
     ): Result<Trip> = runCatching {
-        apiClient.createTrip(
+        val response = apiClient.createTrip(
             CreateTripRequest(
                 name      = name,
                 startDate = startDate.toString(),
                 endDate   = endDate.toString(),
-            )
-        ).data.toDomain()
-    }
+            ),
+        )
+        if (!response.success || response.data == null) {
+            error(response.error?.message ?: "Create trip failed (success=${response.success})")
+        }
+        response.data.toDomain()
+    }.mapError { it.toApiFailure() }
 
     override suspend fun addDestination(
         tripId   : String,
@@ -49,8 +54,13 @@ class TripRepositoryImpl(
                 dayOrder  = dayOrder,
                 daysCount = daysCount,
             )
-        ).data.toDomain()
-    }
+        ).let { response ->
+            if (!response.success || response.data == null) {
+                error(response.error?.message ?: "Add destination failed")
+            }
+            response.data.toDomain()
+        }
+    }.mapError { it.toApiFailure() }
 
     override suspend fun savePlanningContext(
         tripId              : String,
@@ -74,6 +84,16 @@ class TripRepositoryImpl(
     }
 
     override suspend fun getTripById(tripId: String): Result<Trip> = runCatching {
-        apiClient.getTripById(tripId).data.toDomain()
-    }
+        val response = apiClient.getTripById(tripId)
+        if (!response.success || response.data == null) {
+            error(response.error?.message ?: "Trip not found")
+        }
+        response.data.toDomain()
+    }.mapError { it.toApiFailure() }
+
+    private fun Throwable.toApiFailure(): Throwable =
+        if (message.isNullOrBlank()) Exception(bestMessage(), this) else this
 }
+
+private fun <T> Result<T>.mapError(transform: (Throwable) -> Throwable): Result<T> =
+    fold(onSuccess = { Result.success(it) }, onFailure = { Result.failure(transform(it)) })

@@ -15,6 +15,15 @@ subprojects {
             force("org.jetbrains.kotlin:kotlin-stdlib:${libs.versions.kotlin.get()}")
             force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${libs.versions.kotlin.get()}")
             force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${libs.versions.kotlin.get()}")
+
+            // Landscapist 2.8.x pulls Ktor 3.x; keep all modules on the project Ktor version.
+            val ktorVersion = libs.versions.ktor.get()
+            eachDependency {
+                if (requested.group == "io.ktor") {
+                    useVersion(ktorVersion)
+                    because("Align Ktor with project version (Landscapist would otherwise pull 3.x)")
+                }
+            }
         }
     }
 }

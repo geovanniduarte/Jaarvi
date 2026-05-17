@@ -1,12 +1,16 @@
 package com.jaarvi.shared.network
 
+import com.jaarvi.shared.BuildConfig
+
 /**
- * Android implementation of ApiConfig.
+ * Android implementation of [ApiConfig].
  *
- * Uses 10.0.2.2 for debug builds (emulator localhost alias).
- * This will be configured via BuildConfig in the Android app module.
- * For now, defaulting to debug localhost.
+ * Base URL comes from `:shared` [BuildConfig.API_BASE_URL] (see `shared/build.gradle.kts`).
+ *
+ * - **Physical device** on the same Wi‑Fi as the server: use the Mac’s LAN IP, e.g.
+ *   `http://192.168.80.86:30080/api` (port **30080** from `kubectl port-forward`, not 3000).
+ * - **Emulator on the same Mac** as the server: use `http://10.0.2.2:30080/api` instead.
  */
 actual object ApiConfig {
-    actual val baseUrl: String = "http://192.168.80.86:30080/api"
+    actual val baseUrl: String = BuildConfig.API_BASE_URL
 }
