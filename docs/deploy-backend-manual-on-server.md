@@ -15,7 +15,7 @@ This guide is for someone with **no infrastructure background**. You work **on t
 - **Docker** packages the backend into an **image** (a sealed box with Node.js and your app).
 - **kind** starts a small **Kubernetes** cluster on your computer (inside Docker).
 - **Kubernetes** starts **PostgreSQL** and the **backend API** and keeps them running.
-- **`kubectl port-forward`** is used in **two** situations: (1) **Postgres**—a tunnel from your Mac to **`svc/postgres`** so **Prisma** (running on the Mac) can reach the database inside the cluster (**§8.4**); (2) **API**—forwarding the backend Service so **HTTP** clients on your LAN can reach **`…:30080`** (**§9**).
+- **`kubectl port-forward`** is used in **two** situations: (1) **Postgres**—a tunnel from your Mac to **`svc/postgres`** so **Prisma** and **`npm run seed`** (running on the Mac) can reach the database inside the cluster (**§8.4**–**§8.8**); (2) **API**—forwarding the backend Service so **HTTP** clients on your LAN can reach **`…:30080`** (**§9**).
 
 **Health check:** when deployment works, opening `http://<SERVER_IP>:30080/api/health` should return JSON with `"success": true`.
 
@@ -33,19 +33,19 @@ Someone deploying **for the first time** should complete the sections below **in
 | 4 | §5 | Start the **kind** cluster **`jaarvi`** and select context **`kind-jaarvi`**. |
 | 5 | §6 | **`docker build`** the API image and **`kind load`** it so Pods can use **`jaarvi-backend:local`**. |
 | 6 | §7 | **`kubectl apply`** namespace → Secret → Postgres → backend; **`rollout wait`** Postgres **then** backend. |
-| 7 | **§8** | **Tunnel Postgres to your Mac** and run **Prisma migrate** so tables exist (**before** relying on DB-backed API behavior). |
+| 7 | **§8** | **Tunnel Postgres to your Mac**, run **Prisma migrate** (**§8.7**), then **seed** the database (**§8.8**) if you need catalog rows, test users, or sample data (**before** relying on empty tables in the API). |
 | 8 | §9 | **`port-forward`** the **API** Service so callers reach **`…:30080`**. |
 | 9 | §10 | **`curl`** health checks from the Mac and (optionally) the LAN. |
 
 **After you change backend code** (not only **`git pull`**): **§6.1** — rebuild **`jaarvi-backend:local`**, **`kind load`**, **`kubectl rollout restart`**, then **`rollout status`**.
 
-**Typical mistakes:** running **§8** before Postgres is **Ready** (migrations fail); using **`npx prisma`** without pinning the CLI version (**§8**) and hitting a schema error on Prisma v7; forgetting a **running** **`kubectl port-forward svc/postgres`** while Prisma connects to **`127.0.0.1`**.
+**Typical mistakes:** running **§8** before Postgres is **Ready** (migrations fail); using **`npx prisma`** without pinning the CLI version (**§8**) and hitting a schema error on Prisma v7; forgetting a **running** **`kubectl port-forward svc/postgres`** while Prisma or **`npm run seed`** connects to **`127.0.0.1`**; running **§8.8** before **§8.7** succeeds or skipping seed and wondering why **destination** lists are empty.
 
 ### 1.2 Quick reference: `kubectl port-forward` (Postgres vs API)
 
 | Goal | Command (run on the Mac) | Full steps |
 |------|---------------------------|------------|
-| **Migrations (Prisma on the Mac → DB in the cluster)** | `kubectl -n jaarvi port-forward svc/postgres 5432:5432` | **§8.4** (leave this terminal open; use **§8.7** in another terminal). If local **5432** is busy, use **`15432:5432`** and match **`DATABASE_URL`**—see **§8.4**. |
+| **Migrations + seed (Prisma / `npm run seed` on the Mac → DB in the cluster)** | `kubectl -n jaarvi port-forward svc/postgres 5432:5432` | **§8.4** (leave this terminal open; **§8.7** migrate, then **§8.8** seed in another terminal). If local **5432** is busy, use **`15432:5432`** and match **`DATABASE_URL`**—see **§8.4**. |
 | **Reach the HTTP API from the network** | `nohup kubectl -n jaarvi port-forward --address 0.0.0.0 svc/jaarvi-backend 30080:80 …` | **§9** |
 
 **Why a Postgres port-forward is needed:** PostgreSQL only listens **inside** the Kubernetes network (on the **`postgres`** Service). Your Mac is **outside** that network, so **`npx prisma`** cannot connect to `postgres:5432` by hostname. **`kubectl port-forward`** opens a **TCP bridge**: a port on **`127.0.0.1`** on your Mac is wired to **`svc/postgres:5432`** in the cluster. Then **`DATABASE_URL`** can use **`127.0.0.1`** (and the local port you chose) while Prisma runs locally. **Pods** (the backend Deployment) do **not** need this—they use the in-cluster DNS name **`postgres`** (**§7**). After migrations finish, you can stop the Postgres forward; the **API** forward (**§9**) is separate.
@@ -218,7 +218,7 @@ kind version
 
 - **`curl`**: preinstalled on macOS.
 - **`sed`**: preinstalled; used to fill template placeholders.
-- **Node.js** (only if you will run **`npx prisma@5.22.0 migrate deploy`** or **`npm run prisma:migrate:deploy`** from section **8**): install from [https://nodejs.org/](https://nodejs.org/) (LTS 20.x) or `brew install node@20` if you use Homebrew.
+- **Node.js** (only if you will run **`npx prisma@5.22.0 migrate deploy`**, **`npm run prisma:migrate:deploy`**, or **`npm run seed`** from section **8**): install from [https://nodejs.org/](https://nodejs.org/) (LTS 20.x) or `brew install node@20` if you use Homebrew.
 
 ---
 
@@ -341,7 +341,7 @@ kubectl -n jaarvi rollout status deployment/jaarvi-backend --timeout=180s
 
 **If you only changed `backend/.env`:** you do **not** need steps **1–2**; apply the Secret and restart as in **section 12** (**Changed `.env` after deploy**).
 
-**If you changed `prisma/schema.prisma` or added migration files:** after the new Pods are up, run **Prisma migrate** from the Mac as in **section 8** (Postgres port-forward + **`npx prisma@5.22.0 migrate deploy`**).
+**If you changed `prisma/schema.prisma` or added migration files:** after the new Pods are up, run **Prisma migrate** from the Mac as in **section 8** (Postgres port-forward + **`npx prisma@5.22.0 migrate deploy`**). On a **new empty database**, run **`npm run seed`** (**§8.8**) after migrate so reference data exists.
 
 **API access:** if **`curl`** to **`http://127.0.0.1:30080`** fails with connection refused, ensure the **API port-forward** from **section 9** is still running (it does not restart automatically when you redeploy).
 
@@ -353,7 +353,7 @@ Replace placeholders in templates with **`jaarvi`** for app and namespace, set P
 
 **Convention:** `__BACKEND_PORT__` must match the **`PORT`** value in `backend/.env` (default **3000**).
 
-**Order vs. migrations:** Complete **§7.5** (Postgres rollout **successful**) **before** **§8** (Prisma). Running migrate while Postgres still starts yields **connection refused**. Exposing the API (**§9**) can wait until after migrations or in parallel—they are independent—as long as **§8’s** Postgres forward runs in its **own terminal** while **`npx prisma@5.22.0 migrate deploy`** executes.
+**Order vs. migrations and seed:** Complete **§7.5** (Postgres rollout **successful**) **before** **§8** (Prisma + optional seed). Running migrate or seed while Postgres still starts yields **connection refused**. Exposing the API (**§9**) can wait until after **§8.7**–**§8.8** or in parallel—they are independent—as long as **§8’s** Postgres forward stays open in its **own terminal** while **`npx prisma@5.22.0 migrate deploy`** and **`npm run seed`** run from **`backend/`**.
 
 ### 7.1 Namespace
 
@@ -418,17 +418,18 @@ If the backend **CrashLoops** waiting for Postgres, letting **(1)** finish first
 
 ---
 
-## 8. Database schema (migrations)
+## 8. Database schema (migrations) and seed data
 
-The running API image does **not** automatically apply Prisma migrations. After Postgres is up, the database volume might still be **empty** until migrations are applied.
+The running API image does **not** automatically apply Prisma migrations or insert seed rows. After Postgres is up, the database volume might still be **empty** until **migrations** run (**§8.7**). Tables may exist but **reference data** (countries, cities, activity types, etc.) is missing until you run the **seed** script (**§8.8**).
 
 ### 8.1 Where this sits in the full flow
 
 - **Depends on:** Postgres **StatefulSet rollout finished** (**§7.5**, step **1**) and correct **`backend/.env` + Secret** (**§7.2**).
 - **Does not require:** API port-forward (**§9**). Open only a **Postgres** tunnel for this section; add the backend port-forward when you expose the HTTP API (**§9**).
-- **When to repeat:** after **new migration files** from Git or when pointing at an **empty** database—not on every reboot (see **§16**).
+- **When to repeat migrations:** after **new migration files** from Git or when pointing at an **empty** database—not on every reboot (see **§16**).
+- **When to repeat seed:** after a **fresh empty DB** post-migrate, when you intentionally **reset** dev data, or when seed scripts change—**not** on every reboot (seed can conflict with existing rows depending on script idempotency).
 
-You run Prisma **on the Mac**, but it must talk through **`kubectl`** to Postgres **inside** the cluster unless you expose Postgres some other way (not covered here).
+You run Prisma and **`npm run seed`** **on the Mac**, but they must talk through **`kubectl`** to Postgres **inside** the cluster unless you expose Postgres some other way (not covered here).
 
 ---
 
@@ -479,7 +480,7 @@ If your Mac already uses **5432** for another Postgres (often “Postgres.app”
 kubectl -n jaarvi port-forward svc/postgres 15432:5432
 ```
 
-Then set **`DB_PORT`** and the port inside **`DATABASE_URL`** to **`15432`** for the duration of the migrate (**§8.6**).
+Then set **`DB_PORT`** and the port inside **`DATABASE_URL`** to **`15432`** for the duration of migrate and seed (**§8.6**–**§8.8**).
 
 ---
 
@@ -520,6 +521,33 @@ npx prisma@5.22.0 migrate deploy
 **Versions:** **`5.22.0`** tracks **`backend/package.json`** (**`dependencies`**: **`@prisma/client`**, **`devDependencies`**: **`prisma`**). If dependencies are upgraded later, bump this pin to match or prefer **`npm run prisma:migrate:deploy`** inside **`backend/`** after **`npm ci`/`npm install`**.
 
 If you skip migrations and tables are missing, the API may **`CrashLoop`** on DB reads or surface query errors (**§12**).
+
+---
+
+### 8.8 Step 7 — Seed the database (after migrations succeed)
+
+**Purpose:** `prisma migrate deploy` only creates **schema** (tables, indexes). The **`prisma/seed.ts`** script fills **initial rows** the API expects for demos and development (activity types, countries/cities, and—when **`NODE_ENV=development`**—test users and sample trips). Without seeding, endpoints such as **`/api/destinations/countries`** may return **empty lists** or fail depending on code paths.
+
+**Prerequisites (same as §8.7):**
+
+- **Terminal A:** Postgres **`port-forward`** still active (**§8.4**).
+- **`backend/.env`:** **`DATABASE_URL`** still points at **`127.0.0.1`** (or **`localhost`**) with the **same local port** as the forward, and credentials match **`jaarvi-env`** / Postgres (**§8.5**).
+- **`npm install`** (or **`npm ci`**) has been run once in **`backend/`** so **`node_modules`** exists—including **devDependencies** such as **`ts-node`** (do **not** use **`npm install --omit=dev`** for seeding on the Mac).
+
+From **`backend/`** (same shell as migrate is fine after **§8.7** succeeds):
+
+```bash
+cd ~/Jaarvi/backend
+npm run seed
+```
+
+**What this runs:** **`package.json`** → **`"seed": "npx ts-node prisma/seed.ts"`** (same command as **`prisma.seed`**). You can also run **`npx prisma db seed`** from **`backend/`**; it invokes the same **`prisma.seed`** entry.
+
+**`NODE_ENV` behavior:** if **`NODE_ENV`** is **`production`** in **`.env`**, seed still runs activity types and destinations, but **skips** test users and sample trips (see **`prisma/seed.ts`**). For a **lab** database on your Mac, **`development`** is typical when you want full sample data.
+
+**Optional partial seeds** (same forward + **`DATABASE_URL`**): **`npm run seed:activity-types`**, **`seed:destinations`**, **`seed:users`**, **`seed:trips`**—see **`backend/package.json`**.
+
+**After seeding:** the data lives in the **Postgres PVC** inside the cluster. You do **not** need to keep the Postgres port-forward open for the **API** to read it—only for future **migrate/seed/studio** from the Mac. Restart the API port-forward (**§9**) and hit **`/api/health`** or authenticated destination routes (**§10**).
 
 ---
 
@@ -620,6 +648,26 @@ npx -v
 
 Both should print versions. Then retry **`npx prisma@5.22.0 migrate deploy`** from **`backend/`** (section **8**—see step **§8.7**) or **`npm run prisma:migrate:deploy`** after installing dependencies.
 
+### `sh: ts-node: command not found` (when running **`npm run seed`**)
+
+**Cause:** **`ts-node`** is a **devDependency**. It is missing if **`node_modules`** was never installed, was deleted, or **`npm install`** was run with **`--omit=dev`** / **`NODE_ENV=production`** in a way that skipped dev tools.
+
+**Fix:**
+
+```bash
+cd ~/Jaarvi/backend
+npm install
+npm run seed
+```
+
+Confirm **`./node_modules/ts-node`** exists. The **`seed`** script uses **`npx ts-node`** so npm resolves the **local** binary reliably.
+
+### `npm warn Unknown project config "always-auth"`
+
+**Cause:** A project or user **`.npmrc`** contains **`always-auth`**, which npm is deprecating.
+
+**Fix:** Edit the **`.npmrc`** that npm warns about (path often appears in the full warning) and remove **`always-auth`**, or replace it with supported keys per **`npm help npmrc`**. This warning does **not** break **`npm run seed`**.
+
 ### Pods not ready / CrashLoopBackOff
 
 ```bash
@@ -702,9 +750,9 @@ Kubernetes groups everything for this demo under **namespace `jaarvi`**.
 | **Git** | Source of **`backend/`**, **`k8s/templates/`** | **`clone`** / **`pull`** to refresh code and manifests. |
 | **`docker`** | Images and visibility into containers | **`docker build -t jaarvi-backend:local -f backend/Dockerfile backend`**; **`docker ps`** (running containers); engine must be running for kind. |
 | **`kind`** | Local Kubernetes atop Docker | **`kind create cluster --name jaarvi`**; **`kubectl config use-context kind-jaarvi`** (with kubectl); **`kind load docker-image jaarvi-backend:local --name jaarvi`**. |
-| **`kubectl`** | Lifecycle and introspection via the Kubernetes API | **`kubectl apply`** (namespace, Postgres, backend, Secret); **`kubectl -n jaarvi rollout status …`**; **`get pods`** / **`logs`** / **`describe`**; **`kubectl -n jaarvi port-forward`** to **`svc/postgres`** (migrations—**§8.4**) and **`svc/jaarvi-backend 30080:80`** (API—**§9**); **`rollout restart`** after Secret changes (troubleshooting). |
+| **`kubectl`** | Lifecycle and introspection via the Kubernetes API | **`kubectl apply`** (namespace, Postgres, backend, Secret); **`kubectl -n jaarvi rollout status …`**; **`get pods`** / **`logs`** / **`describe`**; **`kubectl -n jaarvi port-forward`** to **`svc/postgres`** (migrations + seed from Mac—**§8.4**) and **`svc/jaarvi-backend 30080:80`** (API—**§9**); **`rollout restart`** after Secret changes (troubleshooting). |
 | **`sed`** | Turning templates under **`k8s/templates/`** into concrete manifests | Substitute placeholders (app name, namespace, storage size, NodePort placeholder, image tag, container port) and pipe **`stdout`** into **`kubectl apply -f -`**. |
-| **Node.js + `npx`** (optional) | Database schema tooling on the Mac | **`npx prisma@5.22.0 migrate deploy`** (**§8.7**) with **`DATABASE_URL`** pointing at **`127.0.0.1`** through a Postgres **`port-forward`**, **or** **`npm run prisma:migrate:deploy`** from **`backend/`** using local **`node_modules`**. Pinning avoids stray **Prisma 7** CLI (**§12** troubleshooting). |
+| **Node.js + `npx` / `npm`** (optional) | Database schema and seed on the Mac | **`npx prisma@5.22.0 migrate deploy`** (**§8.7**) then **`npm run seed`** (**§8.8**), with **`DATABASE_URL`** at **`127.0.0.1`** through a Postgres **`port-forward`**; **or** **`npm run prisma:migrate:deploy`** for migrate only. Pinning avoids stray **Prisma 7** CLI (**§12** troubleshooting). |
 
 ### 15.3 Diagram (components × tools × data flow)
 
@@ -739,7 +787,7 @@ flowchart TB
     DOCKER["docker — build & engine"]
     KIND["kind — create cluster; load image"]
     KUBE["kubectl — apply | status | logs | restart | port-forward"]
-    NPM["optional: npx prisma@5.22.0 migrate\n+ port-forward Postgres"]
+    NPM["optional: migrate + seed on Mac\nprisma@5.22.0 migrate + npm run seed\n+ port-forward Postgres"]
 
     GIT --> SRC
     SRC --> DOCKER
@@ -805,7 +853,7 @@ kubectl -n jaarvi rollout status statefulset/postgres --timeout=180s
 kubectl -n jaarvi rollout status deployment/jaarvi-backend --timeout=180s
 ```
 
-**You do not re-run migrations** (**section 8**) on every reboot—only after an **empty** DB, **changed** **`prisma/migrations`**, or a deliberate **`migrate deploy`** on a restored volume. Postgres port-forward (**§8.4**) is only needed **while running Prisma**, not permanently after reboot (**§16** restores the **API** forward **§9**).
+**You do not re-run migrations** (**section 8**, **§8.7**) on every reboot—only after an **empty** DB, **changed** **`prisma/migrations`**, or a deliberate **`migrate deploy`** on a restored volume. **You do not re-run seed** (**§8.8**) on every reboot unless you want to refresh dev data or you wiped the database. Postgres port-forward (**§8.4**) is only needed **while running Prisma or seed from the Mac**, not permanently after reboot (**§16** restores the **API** forward **§9**).
 
 **6.** (**Optional**) If **`address already in use`** on **`30080`**, stop an old listener (normally unnecessary right after reboot). See section **11** for details.
 

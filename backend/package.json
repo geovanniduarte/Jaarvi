@@ -20,14 +20,14 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:format": "prisma format",
-    "seed": "ts-node prisma/seed.ts",
-    "seed:activity-types": "ts-node -e \"const { PrismaClient } = require('@prisma/client'); const { seedActivityTypes } = require('./prisma/seeds/activityTypes'); seedActivityTypes(new PrismaClient()).then(() => process.exit(0))\"",
-    "seed:destinations": "ts-node -e \"const { PrismaClient } = require('@prisma/client'); const { seedDestinations } = require('./prisma/seeds/destinations'); seedDestinations(new PrismaClient()).then(() => process.exit(0))\"",
-    "seed:users": "ts-node -e \"const { PrismaClient } = require('@prisma/client'); const { seedTestUsers } = require('./prisma/seeds/users'); seedTestUsers(new PrismaClient()).then(() => process.exit(0))\"",
-    "seed:trips": "ts-node -e \"const { PrismaClient } = require('@prisma/client'); const { seedSampleTrips } = require('./prisma/seeds/sampleTrips'); seedSampleTrips(new PrismaClient()).then(() => process.exit(0))\""
+    "seed": "npx ts-node prisma/seed.ts",
+    "seed:activity-types": "npx ts-node -e \"const { PrismaClient } = require('@prisma/client'); const { seedActivityTypes } = require('./prisma/seeds/activityTypes'); seedActivityTypes(new PrismaClient()).then(() => process.exit(0))\"",
+    "seed:destinations": "npx ts-node -e \"const { PrismaClient } = require('@prisma/client'); const { seedDestinations } = require('./prisma/seeds/destinations'); seedDestinations(new PrismaClient()).then(() => process.exit(0))\"",
+    "seed:users": "npx ts-node -e \"const { PrismaClient } = require('@prisma/client'); const { seedTestUsers } = require('./prisma/seeds/users'); seedTestUsers(new PrismaClient()).then(() => process.exit(0))\"",
+    "seed:trips": "npx ts-node -e \"const { PrismaClient } = require('@prisma/client'); const { seedSampleTrips } = require('./prisma/seeds/sampleTrips'); seedSampleTrips(new PrismaClient()).then(() => process.exit(0))\""
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "npx ts-node prisma/seed.ts"
   },
   "keywords": [
     "jaarvi",
