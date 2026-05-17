@@ -1,0 +1,16 @@
+androidApp/build.gradle.kts
+  h_5b3edc494b102c 74
+shared/src/androidMain/kotlin/com/jaarvi/shared/network/ApiConfig.android.kt
+  h_5b3edc494b102c 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "9bff805a52052a9155a513a952f6e6887a693b99",
+  "prompts": {},
+  "humans": {
+    "h_5b3edc494b102c": {
+      "author": "geovanniduarte <geovanni.duarte.guerrero@gmail.com>"
+    }
+  }
+}
